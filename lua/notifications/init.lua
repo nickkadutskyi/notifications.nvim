@@ -1,14 +1,13 @@
+local NotificationGroupManager = require("notifications.notification_group_manager")
+
 local M = {}
 
-function M.setup() end
+---@type NotificationGroupManager
+M.notification_group_manager = nil
 
----@enum notifications.DisplayType
-M.displayType = {
-    BALLOON = 1,
-    STICKY_BALLOON = 2,
-    TOOL_WINDOW_BALLOON = 3,
-    NO_POPUP = 4,
-}
+function M.setup()
+    M.notification_group_manager = NotificationGroupManager:new()
+end
 
 M.level_names = {
     [0] = "TRACE",
@@ -21,7 +20,7 @@ M.level_names = {
 
 ---@class notifications.Options
 ---@field title string|nil
----@field type notifications.DisplayType|nil
+---@field type NotificationDisplayType|nil
 ---@field icon string|nil
 ---@field timeout number|boolean|nil Time to show notification in milliseconds, set to false to disable timeout.
 
@@ -37,7 +36,7 @@ function M.notify(msg, level, opts)
 
     local n = require("notifications.notification"):new("main", opts and opts.title or "", msg, level)
     -- n.notify()
-    vim.notify(n:getContent())
+    -- vim.notify(n:getContent())
 end
 
 return M

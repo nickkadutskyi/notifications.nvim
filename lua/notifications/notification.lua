@@ -1,3 +1,5 @@
+local NotificationsBus = require("notifications.notifications_bus")
+
 ---@class Notification
 ---@field public id integer
 ---@field private _groupId string
@@ -56,6 +58,10 @@ function NotificationClass.isEmpty(str)
 end
 
 --- INSTANCE METHODS -----------------------------------------------------------
+
+function Notification:notify()
+    NotificationsBus.notify(self)
+end
 
 function Notification:getTimestamp()
     return self._timestamp
