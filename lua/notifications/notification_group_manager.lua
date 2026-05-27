@@ -24,28 +24,41 @@ function NotificationGroupManagerClass:new()
     ---@diagnostic disable-next-line: invisible
     self:addPluginListener()
     ---@diagnostic disable-next-line: invisible
+    self:registerNotificationGroup({
+        id = "default",
+        displayType = NotificationDisplayType.BALLOON,
+        displayName = "Default",
+        pluginId = "notifications.nvim",
+    }, self._registeredGroups)
+    ---@diagnostic disable-next-line: invisible
     self._registeredGroups = self:computeGroups()
 
-    vim.defer_fn(function()
-        local ids = vim.iter(self._registeredGroups)
-            :map(
-                ---@param v NotificationGroup
-                function(_, v)
-                    return v.displayId
-                end
-            )
-            :totable()
-
-        -- vim.notify("Manager Constructted" .. vim.inspect({
-        --     numreg = #ids,
-        --     ids = ids,
-        -- }))
-    end, 5000)
+    -- vim.defer_fn(function()
+    --     local ids = vim.iter(self._registeredGroups)
+    --         :map(
+    --             ---@param v NotificationGroup
+    --             function(_, v)
+    --                 return v.displayId
+    --             end
+    --         )
+    --         :totable()
+    --
+    --     -- vim.notify("Manager Constructted" .. vim.inspect({
+    --     --     numreg = #ids,
+    --     --     ids = ids,
+    --     -- }))
+    -- end, 5000)
 
     return self
 end
 
 --- INSTNACE METHODS -----------------------------------------------------------
+
+---@param displayId string
+---@return boolean
+function NotificationGroupManager:isGroupRegistered(displayId)
+    return self._registeredGroups[displayId] ~= nil
+end
 
 ---@private
 ---@return table<string, NotificationGroup>
@@ -170,5 +183,6 @@ function NotificationGroupManager:processPluginPaths(paths, callback)
         )
 end
 
+--- Since it is creating autocmds we make it a singleton to avoid multiple unhandled autocmds
 local manager = NotificationGroupManagerClass:new()
 return manager

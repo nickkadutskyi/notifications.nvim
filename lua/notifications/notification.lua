@@ -1,4 +1,4 @@
-local NotificationsBus = require("notifications.notifications_bus")
+local NotificationManager = require("notifications.notifications_manager")
 
 --- Monotonically increasing counter for unique notification IDs within the session.
 local next_id = 0
@@ -65,7 +65,7 @@ end
 --- INSTANCE METHODS -----------------------------------------------------------
 
 function Notification:notify()
-    NotificationsBus.notify(self)
+    NotificationManager:showNotification(self)
 end
 
 function Notification:getTimestamp()

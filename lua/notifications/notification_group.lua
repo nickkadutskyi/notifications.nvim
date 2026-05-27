@@ -20,7 +20,7 @@ function NotificationGroupClass:new(displayId, displayType, title, pluginId)
     return setmetatable({
         displayId = displayId,
         displayType = displayType,
-        title = title,
+        title = title or displayId,
         pluginId = pluginId,
     }, NotificationGroup)
 end

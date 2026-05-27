@@ -32,9 +32,8 @@ function M.notify(msg, level, opts)
     level = level or vim.log.levels.INFO
     assert(type(M.level_names[level]) == "string", "Invalid log level: " .. tostring(level))
 
-    local n = require("notifications.notification"):new("main", opts and opts.title or "", msg, level)
-    -- n.notify()
-    -- vim.notify(n:getContent())
+    local n = require("notifications.notification"):new("default", opts and opts.title or "", msg, level)
+    n:notify()
 end
 
 return M
