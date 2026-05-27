@@ -1,5 +1,8 @@
 local NotificationsBus = require("notifications.notifications_bus")
 
+--- Monotonically increasing counter for unique notification IDs within the session.
+local next_id = 0
+
 ---@class Notification
 ---@field public id integer
 ---@field private _groupId string
@@ -36,10 +39,12 @@ function NotificationClass:new(groupId, title, content, level)
         title = ""
     end
 
+    next_id = next_id + 1
+    local id = next_id
     local timestamp = os.time()
 
     return setmetatable({
-        id = timestamp,
+        id = id,
         _timestamp = timestamp,
         _groupId = groupId,
         _title = title or "",

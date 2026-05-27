@@ -6,6 +6,9 @@ local M = {}
 M.notification_group_manager = nil
 
 function M.setup()
+    if M.notification_group_manager then
+        return
+    end
     M.notification_group_manager = NotificationGroupManager:new()
 end
 

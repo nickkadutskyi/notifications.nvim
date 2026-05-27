@@ -28,9 +28,12 @@ function NotificationGroupManagerClass:new()
 
     vim.defer_fn(function()
         local ids = vim.iter(self._registeredGroups)
-            :map(function(_, v)
-                return v.id
-            end)
+            :map(
+                ---@param v NotificationGroup
+                function(_, v)
+                    return v.displayId
+                end
+            )
             :totable()
 
         -- vim.notify("Manager Constructted" .. vim.inspect({
@@ -89,7 +92,10 @@ end
 
 ---@private
 function NotificationGroupManager:addPluginListener()
+    local group = vim.api.nvim_create_augroup("NotificationsGroupManager", { clear = true })
+
     vim.api.nvim_create_autocmd("SourcePost", {
+        group = group,
         callback = function(args)
             self:processPluginPaths({ args.file }, function(plugin)
                 self:registerNotificationGroup(plugin, self._registeredGroups)
@@ -97,6 +103,7 @@ function NotificationGroupManager:addPluginListener()
         end,
     })
     vim.api.nvim_create_autocmd("OptionSet", {
+        group = group,
         pattern = "runtimepath",
         callback = function(args)
             -- vim.notify("Runtimepath changed, re-registering notification groups")
