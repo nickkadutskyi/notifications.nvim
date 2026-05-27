@@ -1,5 +1,5 @@
 ---@enum NotificationDisplayType
-NotificationDisplayType = {
+local NotificationDisplayType = {
     NONE = "notification.type.no.popup",
     -- Expires automatically after 10 seconds.
     BALLOON = "notification.type.balloon",
