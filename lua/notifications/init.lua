@@ -1,15 +1,10 @@
-local NotificationGroupManager = require("notifications.notification_group_manager")
-
 local M = {}
 
 ---@type NotificationGroupManager
 M.notification_group_manager = nil
 
 function M.setup()
-    if M.notification_group_manager then
-        return
-    end
-    M.notification_group_manager = NotificationGroupManager:new()
+    M.notification_group_manager = require("notifications.notification_group_manager")
 end
 
 M.level_names = {

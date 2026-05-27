@@ -1,0 +1,35 @@
+-- tests/notifications/init_spec.lua
+local notifications = require("notifications")
+
+describe("notifications", function()
+    it("exports level_names table", function()
+        assert.are.equal("INFO", notifications.level_names[vim.log.levels.INFO])
+        assert.are.equal("ERROR", notifications.level_names[vim.log.levels.ERROR])
+        assert.are.equal("OFF", notifications.level_names[5])
+    end)
+
+    it("setup() is idempotent and creates the manager", function()
+        notifications.setup()
+        local first = notifications.notification_group_manager
+        assert.is_not_nil(first)
+
+        notifications.setup()
+        assert.are.equal(first, notifications.notification_group_manager)
+    end)
+
+    it("notify() accepts valid levels and does not throw (currently a stub)", function()
+        assert.has_no.errors(function()
+            notifications.notify("hello")
+            notifications.notify("warn", vim.log.levels.WARN)
+            notifications.notify("with opts", vim.log.levels.INFO, { title = "hi" })
+        end)
+    end)
+
+    it("notify() rejects invalid levels", function()
+        local ok, err = pcall(function()
+            notifications.notify("bad", 99)
+        end)
+        assert.is_false(ok)
+        assert.matches("Invalid log level", err)
+    end)
+end)

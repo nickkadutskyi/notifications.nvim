@@ -80,8 +80,6 @@ end
 ---@private
 ---@param callback fun(plugin: NotificationGroupPluginConfig)
 function NotificationGroupManager:processWithPlugins(callback)
-    -- TODO: resolve plugins
-    -- TODO: iterate over plugins and call callable for each plugin that has a notification group config
     self:processPluginPaths(vim.api.nvim_get_runtime_file("lua/", true), function(plugin)
         callback(plugin)
     end)
@@ -172,4 +170,5 @@ function NotificationGroupManager:processPluginPaths(paths, callback)
         )
 end
 
-return NotificationGroupManagerClass
+local manager = NotificationGroupManagerClass:new()
+return manager
