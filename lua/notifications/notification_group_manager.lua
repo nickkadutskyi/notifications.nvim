@@ -38,7 +38,7 @@ function NotificationGroupManagerClass:new()
     --         :map(
     --             ---@param v NotificationGroup
     --             function(_, v)
-    --                 return v.displayId
+    --                 return v.id
     --             end
     --         )
     --         :totable()
@@ -54,10 +54,18 @@ end
 
 --- INSTNACE METHODS -----------------------------------------------------------
 
----@param displayId string
+---@public
+---@param groupId string
 ---@return boolean
-function NotificationGroupManager:isGroupRegistered(displayId)
-    return self._registeredGroups[displayId] ~= nil
+function NotificationGroupManager:isGroupRegistered(groupId)
+    return self._registeredGroups[groupId] ~= nil
+end
+
+---@public
+---@param groupId string
+---@return NotificationGroup|nil
+function NotificationGroupManager:getNotificationGroup(groupId)
+    return self._registeredGroups[groupId]
 end
 
 ---@private

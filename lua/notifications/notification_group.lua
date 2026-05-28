@@ -1,28 +1,44 @@
 ---@class NotificationGroupClass
----@field private registeredGroups table<string, NotificationGroup>
-local NotificationGroupClass = {
-    registeredGroups = {},
-}
+---@field metatable NotificationGroup Metatable for NotificationGroup instances. Use with `getmetatable(obj) == NotificationGroup.metatable`.
+local NotificationGroupClass = {}
 
 ---@class NotificationGroup
----@field displayId string
+---@field id string
 ---@field displayType NotificationDisplayType
 ---@field title string|nil
 ---@field pluginId string|nil
-local NotificationGroup = {}
+local NotificationGroup = { class = NotificationGroupClass }
 NotificationGroup.__index = NotificationGroup
 
----@param displayId string
+NotificationGroupClass.metatable = NotificationGroup
+
+---@param id string
 ---@param displayType NotificationDisplayType
 ---@param title string|nil
 ---@param pluginId string|nil
-function NotificationGroupClass:new(displayId, displayType, title, pluginId)
+function NotificationGroupClass:new(id, displayType, title, pluginId)
     return setmetatable({
-        displayId = displayId,
+        id = id,
         displayType = displayType,
-        title = title or displayId,
+        title = title or id,
         pluginId = pluginId,
     }, NotificationGroup)
+end
+
+---@return NotificationDisplayType
+function NotificationGroup:getDisplayType()
+    return self.displayType
+end
+---
+---@return string
+function NotificationGroup:__tostring()
+    return string.format(
+        "NotificationGroup{id='%s', displayType=%s, title='%s', pluginId='%s'}",
+        self.id,
+        self.displayType or "nil",
+        self.title or "nil",
+        self.pluginId or "nil"
+    )
 end
 
 return NotificationGroupClass

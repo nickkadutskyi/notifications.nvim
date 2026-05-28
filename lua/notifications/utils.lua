@@ -58,4 +58,10 @@ function M.invokeNow(runnable)
     scheduleIvokations()
 end
 
+---@param str string|any
+---@return boolean
+function M.isEmptyStr(str)
+    return type(str) ~= "string" or str:match("^%s*$") ~= nil
+end
+
 return M

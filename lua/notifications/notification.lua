@@ -1,7 +1,12 @@
 local NotificationManager = require("notifications.notifications_manager")
+local utils = require("notifications.utils")
 
---- Monotonically increasing counter for unique notification IDs within the session.
+--- Increasing counter for unique notification IDs within the session.
 local next_id = 0
+
+---@class NotificationClass
+---@field metatable Notification Metatable for Notification instances. Use with `getmetatable(obj) == Notification.metatable`.
+local NotificationClass = {}
 
 ---@class Notification
 ---@field public id integer
@@ -15,8 +20,7 @@ local next_id = 0
 local Notification = {}
 Notification.__index = Notification
 
----@class NotificationClass
-local NotificationClass = {}
+NotificationClass.metatable = Notification
 
 --- CONSTRUCTOR ----------------------------------------------------------------
 
@@ -46,7 +50,7 @@ function NotificationClass:new(groupId, title, content, level)
     return setmetatable({
         id = id,
         _timestamp = timestamp,
-        _groupId = groupId,
+        _groupId = utils.isEmptyStr(groupId) and "default" or groupId,
         _title = title or "",
         _subtitle = nil,
         _content = content or "",
@@ -56,11 +60,6 @@ function NotificationClass:new(groupId, title, content, level)
 end
 
 --- STATIC METHODS -------------------------------------------------------------
-
----@return boolean
-function NotificationClass.isEmpty(str)
-    return type(str) ~= "string" or str:match("^%s*$") ~= nil
-end
 
 --- INSTANCE METHODS -----------------------------------------------------------
 
@@ -139,12 +138,12 @@ end
 
 ---@return boolean
 function Notification:hasTitle()
-    return not NotificationClass.isEmpty(self._title) or not NotificationClass.isEmpty(self._subtitle)
+    return not utils.isEmptyStr(self._title) or not utils.isEmptyStr(self._subtitle)
 end
 
 ---@return boolean
 function Notification:hasContent()
-    return not NotificationClass.isEmpty(self._content)
+    return not utils.isEmptyStr(self._content)
 end
 
 function Notification:assertHasTitleOrContent()

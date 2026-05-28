@@ -3,8 +3,10 @@ local M = {}
 ---@type NotificationGroupManager
 M.notification_group_manager = nil
 
-function M.setup()
+---@param opts NotificationUserOpts User config
+function M.setup(opts)
     M.notification_group_manager = require("notifications.notification_group_manager")
+    require("notifications.config"):withUserConfig(opts)
 end
 
 M.level_names = {
