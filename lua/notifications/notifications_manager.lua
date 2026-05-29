@@ -48,7 +48,27 @@ end
 ---@private
 ---@param notification Notification
 ---@param displayType NotificationDisplayType
-function NotificationManager:notifyByBalloon(notification, displayType) end
+function NotificationManager:notifyByBalloon(notification, displayType)
+    local tab_id = self:findTabpageForBalloon()
+    local layout = require("notifications.balloon_layout")
+    local balloon
+    -- TODO: check if notification is not expired
+    -- TODO: add balloon to layout for renderig and management
+    layout:add(balloon)
+    -- TODO: add balloon listener to hide ballon after a delay depending on the display type
+    --       BALLOON: 10000 ms; STICKY_BALLOON: 300000 ms
+
+    -- Probably balloon will manage its rendering while layout will manage balloon's position
+
+    return balloon
+end
+
+---@public
+---@return integer
+function NotificationManager:findTabpageForBalloon()
+    --- NOTE: currently showing balloon in current tabpage
+    return vim.api.nvim_get_current_tabpage()
+end
 
 local manager = NotificationManagerClass:new()
 return manager
