@@ -57,12 +57,21 @@ end
 
 ---@param opts NotificationUserOpts
 function NotificationsConfgiuration:withUserConfig(opts)
-    for groupId, groupOpts in pairs(opts.by_group or {}) do
-        local displayType = groupOpts.popup_type or NotificationDisplayType.BALLOON
-        self:changeSettings(groupId, displayType)
+    if opts.by_group ~= nil and type(opts.by_group) == "table" then
+        for groupId, groupOpts in pairs(opts.by_group or {}) do
+            assert(type(groupId) == "string", "Expected groupId to be a string, got " .. type(groupId))
+            assert(
+                type(groupOpts) == "table",
+                "Expected group options to be a table, got " .. type(groupOpts) .. " for groupId " .. groupId
+            )
+            local displayType = groupOpts.popup_type or NotificationDisplayType.BALLOON
+            self:changeSettings(groupId, displayType)
+        end
     end
 
-    self.SHOW_BALLOONS = opts.display_balloon_notifications ~= false
+    if opts.display_balloon_notifications ~= nil then
+        self.SHOW_BALLOONS = opts.display_balloon_notifications ~= false
+    end
 end
 
 ---@public

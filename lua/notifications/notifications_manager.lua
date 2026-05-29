@@ -1,5 +1,6 @@
 local utils = require("notifications.utils")
 local conf = require("notifications.config")
+local tab_manager = require("notifications.tab_manager")
 local NotificationDisplayType = require("notifications.notification_display_type")
 
 local NotificationManagerClass = {}
@@ -48,10 +49,14 @@ end
 ---@private
 ---@param notification Notification
 ---@param displayType NotificationDisplayType
+---@return Balloon|nil
 function NotificationManager:notifyByBalloon(notification, displayType)
-    local tab_id = self:findTabpageForBalloon()
-    local layout = require("notifications.balloon_layout")
-    local balloon
+    local layout = tab_manager:getCurrentTabLayout()
+    if layout == nil then
+        return
+    end
+
+    local balloon = self:createBalloon(notification)
     -- TODO: check if notification is not expired
     -- TODO: add balloon to layout for renderig and management
     layout:add(balloon)
@@ -63,11 +68,9 @@ function NotificationManager:notifyByBalloon(notification, displayType)
     return balloon
 end
 
----@public
----@return integer
-function NotificationManager:findTabpageForBalloon()
-    --- NOTE: currently showing balloon in current tabpage
-    return vim.api.nvim_get_current_tabpage()
+---@param notification Notification
+---@return Balloon
+function NotificationManager:createBalloon(notification)
 end
 
 local manager = NotificationManagerClass:new()

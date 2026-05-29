@@ -8,15 +8,6 @@ describe("notifications", function()
         assert.are.equal("OFF", notifications.level_names[5])
     end)
 
-    it("setup() is idempotent and creates the manager", function()
-        notifications.setup()
-        local first = notifications.notification_group_manager
-        assert.is_not_nil(first)
-
-        notifications.setup()
-        assert.are.equal(first, notifications.notification_group_manager)
-    end)
-
     it("notify() accepts valid levels and does not throw (currently a stub)", function()
         assert.has_no.errors(function()
             notifications.notify("hello")

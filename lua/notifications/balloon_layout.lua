@@ -15,12 +15,13 @@ function BalloonLayoutClass:new()
     return self
 end
 
-function BalloonLayout:add(balloon)
-end
+function BalloonLayout:add(balloon) end
 
---- FIXME: porbably should have a separate layout for each tabpage
----        so that somewhere whenever I switch to a new tabpage it should
----        check if layout is present for that tab and create it.
----        This should allow to dispatch notifications into different tabs.
-local layout = BalloonLayoutClass:new()
-return layout
+-- --- FIXME: porbably should have a separate layout for each tabpage
+-- ---        so that somewhere whenever I switch to a new tabpage it should
+-- ---        check if layout is present for that tab and create it.
+-- ---        This should allow to dispatch notifications into different tabs.
+-- local layout = BalloonLayoutClass:new()
+-- return layout
+
+return BalloonLayoutClass

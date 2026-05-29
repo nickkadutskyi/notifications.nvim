@@ -1,11 +1,7 @@
 local M = {}
 
----@type NotificationGroupManager
-M.notification_group_manager = nil
-
 ---@param opts NotificationUserOpts User config
 function M.setup(opts)
-    M.notification_group_manager = require("notifications.notification_group_manager")
     opts = opts or {}
     assert(type(opts) == "table", "Expected options to be a table, got " .. type(opts))
     require("notifications.config"):withUserConfig(opts)

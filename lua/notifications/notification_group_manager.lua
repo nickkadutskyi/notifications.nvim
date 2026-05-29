@@ -125,7 +125,6 @@ function NotificationGroupManager:addPluginListener()
         group = group,
         pattern = "runtimepath",
         callback = function(args)
-            -- vim.notify("Runtimepath changed, re-registering notification groups")
             -- Traverse runtimepath and re-register all plugins,
             -- this is needed to support plugins being added/removed from runtimepath at runtime
             local paths = vim.api.nvim_get_runtime_file("lua/", true)
