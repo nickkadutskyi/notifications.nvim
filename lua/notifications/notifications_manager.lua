@@ -57,7 +57,7 @@ function NotificationManager:notifyByBalloon(notification, displayType)
         return
     end
 
-    local balloon = self:createBalloon(notification)
+    local balloon = Balloon:new(notification)
     -- TODO: check if notification is not expired
     -- TODO: add balloon to layout for renderig and management
     layout:add(balloon)
@@ -67,12 +67,6 @@ function NotificationManager:notifyByBalloon(notification, displayType)
     -- Probably balloon will manage its rendering while layout will manage balloon's position
 
     return balloon
-end
-
----@param notification Notification
----@return Balloon
-function NotificationManager:createBalloon(notification)
-    local balloon = Balloon:new()
 end
 
 local manager = NotificationManagerClass:new()

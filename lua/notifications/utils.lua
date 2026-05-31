@@ -64,4 +64,145 @@ function M.isEmptyStr(str)
     return type(str) ~= "string" or str:match("^%s*$") ~= nil
 end
 
+---@param text string
+---@param max_width integer
+---@param suffix string|nil|boolean
+---@return string
+function M.truncate(text, max_width, suffix)
+    if type(text) ~= "string" or text == "" then
+        return ""
+    end
+    if vim.fn.strdisplaywidth(text) <= max_width then
+        return text
+    end
+    if suffix == nil or suffix == true then
+        suffix = "…"
+    elseif suffix == false then
+        suffix = ""
+    elseif type(suffix) ~= "string" then
+        error("Invalid suffix: expected string, boolean or nil, got " .. type(suffix))
+    end
+    local target_width = max_width - vim.fn.strdisplaywidth(suffix)
+    local result = ""
+    local current_width = 0
+    for i = 0, vim.fn.strchars(text) - 1 do
+        local char = vim.fn.strcharpart(text, i, 1)
+        local char_width = vim.fn.strdisplaywidth(char)
+        if current_width + char_width > target_width then
+            break
+        end
+        result = result .. char
+        current_width = current_width + char_width
+    end
+    return result .. suffix
+end
+
+---@param text string
+---@param max_width integer
+---@param max_lines integer
+---@param suffix string|boolean|nil
+---@return string[]
+function M.wrap(text, max_width, max_lines, suffix)
+    if type(text) ~= "string" or max_lines <= 0 then
+        return {}
+    end
+    if text == "" then
+        return { "" }
+    end
+
+    if suffix == nil or suffix == true then
+        suffix = "…"
+    elseif suffix == false then
+        suffix = ""
+    elseif type(suffix) ~= "string" then
+        error("Invalid suffix: expected string, boolean or nil, got " .. type(suffix))
+    end
+
+    local lines = {}
+
+    local function overflow()
+        if #lines > 0 then
+            local target_width = max_width - vim.fn.strdisplaywidth(suffix)
+            local result = ""
+            local current_width = 0
+            for i = 0, vim.fn.strchars(lines[#lines]) - 1 do
+                local char = vim.fn.strcharpart(lines[#lines], i, 1)
+                local char_width = vim.fn.strdisplaywidth(char)
+                if current_width + char_width > target_width then
+                    break
+                end
+                result = result .. char
+                current_width = current_width + char_width
+            end
+            lines[#lines] = result .. suffix
+        end
+    end
+
+    local function push(line)
+        if #lines >= max_lines then
+            overflow()
+            return false
+        end
+        table.insert(lines, line)
+        return true
+    end
+
+    local function splitLongWord(word)
+        if vim.fn.strdisplaywidth(word) <= max_width then
+            return { word }
+        end
+
+        local chunks = {}
+        local chunk = ""
+        local width = 0
+        for i = 0, vim.fn.strchars(word) - 1 do
+            local char = vim.fn.strcharpart(word, i, 1)
+            local char_width = vim.fn.strdisplaywidth(char)
+            if chunk ~= "" and width + char_width > max_width then
+                table.insert(chunks, chunk)
+                chunk = ""
+                width = 0
+            end
+            chunk = chunk .. char
+            width = width + char_width
+        end
+        if chunk ~= "" then
+            table.insert(chunks, chunk)
+        end
+        return chunks
+    end
+
+    text = text:gsub("\r\n", "\n"):gsub("\r", "\n")
+
+    for paragraph in (text .. "\n"):gmatch("(.-)\n") do
+        local current = ""
+
+        if paragraph == "" then
+            if not push("") then
+                return lines
+            end
+        else
+            for word in paragraph:gmatch("%S+") do
+                for _, part in ipairs(splitLongWord(word)) do
+                    local candidate = current == "" and part or current .. " " .. part
+                    if vim.fn.strdisplaywidth(candidate) <= max_width then
+                        current = candidate
+                    else
+                        if not push(current) then
+                            return lines
+                        end
+                        current = part
+                    end
+                end
+            end
+
+            if current ~= "" and not push(current) then
+                return lines
+            end
+        end
+    end
+
+    return lines
+end
+
 return M

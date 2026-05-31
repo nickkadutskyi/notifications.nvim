@@ -15,7 +15,32 @@ function BalloonLayoutClass:new()
     return self
 end
 
-function BalloonLayout:add(balloon) end
+function BalloonLayout:add(balloon)
+    if not balloon or not balloon.open then
+        return
+    end
+
+    local width = 50
+    local height = balloon.getHeight and balloon:getHeight() or 4
+    local bottom_margin = 2 + vim.o.cmdheight + 2
+    local right_margin = 3
+
+    -- Position in bottom-right corner (simple version, no stacking)
+    local row = vim.o.lines - height - bottom_margin
+    local col = vim.o.columns - width - right_margin
+    row = math.max(row, 0)
+    col = math.max(col, 0)
+
+    balloon:open(row, col)
+
+    -- Temporary: auto close after 5 seconds
+    vim.defer_fn(function()
+        if balloon._window and vim.api.nvim_win_is_valid(balloon._window) then
+            vim.api.nvim_win_close(balloon._window, true)
+            balloon._window = nil
+        end
+    end, 10000)
+end
 
 -- --- FIXME: porbably should have a separate layout for each tabpage
 -- ---        so that somewhere whenever I switch to a new tabpage it should

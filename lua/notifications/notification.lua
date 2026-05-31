@@ -78,7 +78,7 @@ end
 
 ---@param title string
 ---@return Notification
----@overload fun(self: Notification, title: string, subtitle: string): Notification
+---@overload fun(self: Notification, title: string, subtitle: string|nil): Notification
 function Notification:setTitle(title, subtitle)
     self._title = title or ""
     if subtitle ~= nil then
@@ -127,7 +127,7 @@ function Notification:getIcon()
     return self._icon
 end
 
----@param icon string
+---@param icon string|nil
 ---@return Notification
 function Notification:setIcon(icon)
     self._icon = icon

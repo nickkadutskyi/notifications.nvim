@@ -1,20 +1,270 @@
+local utils = require("notifications.utils")
+
 ---@class BalloonClass
 ---@field public metatable Balloon
 local BalloonClass = {}
 
+local namespace = vim.api.nvim_create_namespace("notifications.balloon")
+
 ---@class Balloon
 ---@field public id string
 ---@field public groupId string
----@field public displayId string|nil
-local Balloon = { class = BalloonClass }
+---@field private _notification Notification
+---@field private _buffer integer|nil
+---@field private _window integer|nil
+---@field private _height integer
+---@field private _MAX_TEXT_WIDTH integer
+---@field private _MAX_TEXT_LINES integer
+---@field private _PADDING_WIDTH integer
+local Balloon = {
+    class = BalloonClass,
+    _MAX_TEXT_WIDTH = 44,
+    _MAX_TEXT_LINES = 4,
+    _PADDING_WIDTH = 3,
+}
 Balloon.__index = Balloon
 
 BalloonClass.metatable = Balloon
 
-function BalloonClass:new()
+--- CONSTRUCTORS ---------------------------------------------------------------
+
+---@param notification Notification
+function BalloonClass:new(notification)
     ---@diagnostic disable-next-line: redefined-local
-    local self = setmetatable({}, Balloon)
+    local self = setmetatable({
+        id = notification.id,
+        groupId = notification:getGroupId(),
+        _notification = notification,
+        _height = 1,
+    }, Balloon)
+    ---@diagnostic disable-next-line: invisible
+    self:_createBuffer()
     return self
+end
+
+--- STATIC METHODS -------------------------------------------------------------
+
+--- Based on window-scoped variables sets an icon in statuscolumn on the first
+--- normal line
+---@public
+function BalloonClass.statuscolumn()
+    local win = vim.g.statusline_winid
+    local padding = (vim.w[win].notifications_balloon_padding ~= nil and vim.w[win].notifications_balloon_padding or 2)
+
+    -- Currently there is no virtual line but we still check it
+    -- so we only draw the icon on the firs regular line
+    if vim.v.virtnum ~= 0 then
+        return string.rep(" ", padding)
+    end
+
+    local icon = vim.w[win].notifications_balloon_icon or ""
+
+    if vim.v.lnum ~= 1 or icon == "" then
+        return string.rep(" ", padding)
+    end
+
+    local width = vim.fn.strdisplaywidth(icon)
+    -- ensure the icon has at least 2 width to let icon render larger
+    if width < 2 then
+        icon = icon .. string.rep(" ", 2 - width)
+    end
+
+    icon = string.rep(" ", padding - 2) .. icon
+
+    local highlight = vim.w[win].notifications_balloon_icon_highlight
+    if type(highlight) == "string" and highlight ~= "" then
+        return "%#" .. highlight .. "#" .. icon .. "%*"
+    end
+
+    return icon
+end
+
+--- INSTANCE METHODS -----------------------------------------------------------
+
+---@private
+function Balloon:_createBuffer()
+    -- Currently we create a buffer only once but in future we will recreate
+    -- it on updates to the notification or update content in existing one
+    if self._buffer ~= nil then
+        return
+    end
+
+    self._buffer = vim.api.nvim_create_buf(false, true)
+
+    vim.bo[self._buffer].buftype = "nofile"
+    -- this should delete the buffer from memory when closing the window
+    vim.bo[self._buffer].bufhidden = "wipe"
+
+    vim.diagnostic.enable(false, { bufnr = self._buffer })
+
+    local raw_title = self._notification:getTitle()
+    local raw_subtitle = self._notification:getSubtitle()
+
+    if utils.isEmptyStr(raw_title) and not utils.isEmptyStr(raw_subtitle) then
+        raw_title = raw_subtitle --[[@as string]]
+        raw_subtitle = nil
+    elseif not utils.isEmptyStr(raw_title) and not utils.isEmptyStr(raw_subtitle) then
+        raw_title = raw_title .. ": "
+    end
+
+    ---@type string[]
+    local lines = {}
+    ---@type string|nil
+    local title
+
+    if not utils.isEmptyStr(raw_title) then
+        title = raw_title .. (not utils.isEmptyStr(raw_subtitle) and raw_subtitle or "")
+        title = utils.truncate(title, self._MAX_TEXT_WIDTH)
+        table.insert(lines, title)
+        vim.list_extend(
+            lines,
+            utils.wrap(self._notification:getContent(), self._MAX_TEXT_WIDTH, self._MAX_TEXT_LINES - 1)
+        )
+    else
+        lines = utils.wrap(self._notification:getContent(), self._MAX_TEXT_WIDTH, self._MAX_TEXT_LINES)
+    end
+
+    if #lines == 0 then
+        lines = { "" }
+    end
+
+    self._height = math.min(#lines, self._MAX_TEXT_LINES)
+
+    vim.api.nvim_buf_set_lines(self._buffer, 0, -1, false, lines)
+
+    -- apply highlight to the title row
+    if not utils.isEmptyStr(title) then
+        local title_len = math.min(#title, #raw_title)
+        vim.api.nvim_buf_set_extmark(self._buffer, namespace, 0, 0, {
+            end_row = 0,
+            end_col = title_len,
+            hl_group = "NotificationTitle",
+        })
+        if not utils.isEmptyStr(raw_subtitle) and #raw_title < self._MAX_TEXT_WIDTH then
+            local subtitle_len = math.min(#raw_subtitle, self._MAX_TEXT_WIDTH - #raw_title)
+            vim.api.nvim_buf_set_extmark(self._buffer, namespace, 0, #raw_title, {
+                end_row = 0,
+                end_col = #raw_title + subtitle_len,
+                hl_group = "NotificationSubtitle",
+            })
+        end
+    end
+
+    vim.bo[self._buffer].modifiable = false
+end
+
+---@private
+---@return string|nil
+function Balloon:_resolveIcon()
+    local icon = self._notification:getIcon()
+    if not utils.isEmptyStr(icon) then
+        return icon
+    end
+
+    local level = self._notification:getLevel()
+    if level == vim.log.levels.ERROR then
+        return "󰀨"
+    elseif level == vim.log.levels.WARN then
+        return ""
+    elseif level == vim.log.levels.INFO then
+        return "󰋼"
+    else
+        return "󰌵"
+    end
+end
+
+---@private
+---@return string
+function Balloon:_resolveIconHighlight()
+    -- TODO: if custom icon provided check webdev-icons for the highlight
+    if not utils.isEmptyStr(self._notification:getIcon()) then
+        return "NotificationIconInfo"
+    end
+    local level = self._notification:getLevel()
+    if level == vim.log.levels.ERROR then
+        return "NotificationIconError"
+    elseif level == vim.log.levels.WARN then
+        return "NotificationIconWarn"
+    elseif level == vim.log.levels.INFO then
+        return "NotificationIconInfo"
+    else
+        return "NotificationIconHint"
+    end
+end
+
+---@return integer
+function Balloon:getHeight()
+    return self._height
+end
+
+---@param row integer
+---@param col integer
+function Balloon:open(row, col)
+    -- we create the window only once, to update window params create a different
+    -- method
+    if self._window ~= nil then
+        return
+    end
+
+    local width = self._MAX_TEXT_WIDTH + self._PADDING_WIDTH * 2
+    local height = self:getHeight()
+
+    self._window = vim.api.nvim_open_win(self._buffer, false, {
+        relative = "editor",
+        width = width,
+        height = height,
+        row = row,
+        col = col,
+        style = "",
+        border = {
+            { "▕", "NotificationFloatBorderOuter" }, -- Top Left corner
+            { "▔", "NotificationFloatBorder" }, -- Title border
+            { "▏", "NotificationFloatBorderOuter" }, -- Top Right corner
+            { "▏", "NotificationFloatBorderOuter" },
+            { "▏", "NotificationFloatBorderOuter" },
+            { "▁", "NotificationFloatBorder" }, -- Footer border
+            { "▕", "NotificationFloatBorderOuter" },
+            { "▕", "NotificationFloatBorderOuter" },
+        },
+        zindex = 50,
+        focusable = false,
+    })
+
+    vim.w[self._window].notifications_balloon_icon = self:_resolveIcon()
+    vim.w[self._window].notifications_balloon_icon_highlight = self:_resolveIconHighlight()
+    vim.w[self._window].notifications_balloon_padding = self._PADDING_WIDTH
+
+    self:_configureWindow()
+end
+
+---@private
+function Balloon:_configureWindow()
+    if self._window == nil or not vim.api.nvim_win_is_valid(self._window) then
+        return
+    end
+
+    local options = {
+        signcolumn = "no",
+        wrap = false,
+        linebreak = false,
+        breakindent = false,
+        breakindentopt = "",
+        scrolloff = 0,
+        sidescrolloff = 0,
+        cursorline = false,
+        number = false,
+        relativenumber = false,
+        statuscolumn = "%!v:lua.require'notifications.balloon'.statuscolumn()",
+        spell = false,
+        list = false,
+        listchars = "",
+        showbreak = "",
+        winhighlight = "Normal:NotificationFloatNormal",
+    }
+
+    for name, value in pairs(options) do
+        pcall(vim.api.nvim_set_option_value, name, value, { win = self._window })
+    end
 end
 
 return BalloonClass

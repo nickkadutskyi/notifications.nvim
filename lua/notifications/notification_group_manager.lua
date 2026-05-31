@@ -24,30 +24,29 @@ function NotificationGroupManagerClass:new()
     ---@diagnostic disable-next-line: invisible
     self:addPluginListener()
     ---@diagnostic disable-next-line: invisible
-    self:registerNotificationGroup({
-        id = "default",
-        displayType = NotificationDisplayType.BALLOON,
-        displayName = "Default",
-        pluginId = "notifications.nvim",
-    }, self._registeredGroups)
-    ---@diagnostic disable-next-line: invisible
     self._registeredGroups = self:computeGroups()
-
-    -- vim.defer_fn(function()
-    --     local ids = vim.iter(self._registeredGroups)
-    --         :map(
-    --             ---@param v NotificationGroup
-    --             function(_, v)
-    --                 return v.id
-    --             end
-    --         )
-    --         :totable()
-    --
-    --     -- vim.notify("Manager Constructted" .. vim.inspect({
-    --     --     numreg = #ids,
-    --     --     ids = ids,
-    --     -- }))
-    -- end, 5000)
+    ---@diagnostic disable-next-line: invisible
+    self:registerNotificationGroup(
+        {
+            id = "default",
+            displayType = NotificationDisplayType.BALLOON,
+            displayName = "Default",
+            pluginId = "notifications.nvim",
+        },
+        ---@diagnostic disable-next-line: invisible
+        self._registeredGroups
+    )
+    ---@diagnostic disable-next-line: invisible
+    self:registerNotificationGroup(
+        {
+            id = "default-sticky",
+            displayType = NotificationDisplayType.STICKY_BALLOON,
+            displayName = "Default Sticky",
+            pluginId = "notifications.nvim",
+        },
+        ---@diagnostic disable-next-line: invisible
+        self._registeredGroups
+    )
 
     return self
 end
