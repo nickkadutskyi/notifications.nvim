@@ -3,6 +3,9 @@
 local BalloonClass = {}
 
 ---@class Balloon
+---@field public id string
+---@field public groupId string
+---@field public displayId string|nil
 local Balloon = { class = BalloonClass }
 Balloon.__index = Balloon
 

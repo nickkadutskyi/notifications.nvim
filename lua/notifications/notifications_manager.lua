@@ -2,6 +2,7 @@ local utils = require("notifications.utils")
 local conf = require("notifications.config")
 local tab_manager = require("notifications.tab_manager")
 local NotificationDisplayType = require("notifications.notification_display_type")
+local Balloon = require("notifications.balloon")
 
 local NotificationManagerClass = {}
 local NotificationManager = {}
@@ -71,6 +72,7 @@ end
 ---@param notification Notification
 ---@return Balloon
 function NotificationManager:createBalloon(notification)
+    local balloon = Balloon:new()
 end
 
 local manager = NotificationManagerClass:new()
