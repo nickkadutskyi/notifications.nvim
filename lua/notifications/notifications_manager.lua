@@ -95,17 +95,21 @@ function NotificationManager:doShowNotification(notification)
         -- Do nothing because not implemented TODO: maybe log if logging turned on
     elseif displayType == NotificationDisplayType.BALLOON or displayType == NotificationDisplayType.STICKY_BALLOON then
         local balloon = self:notifyByBalloon(notification, displayType)
-        if displayType == NotificationDisplayType.STICKY_BALLOON then
-            if balloon == nil then
-                notification:expire()
-            else
-                balloon:addListener({
-                    onClosed = function()
-                        notification:expire()
-                    end,
-                })
-            end
+        -- NOTE: Currently we alway expire notification when balloon closes
+        --       but when we'll add tool bar with timeline (history) we will
+        --       check whether the notification is logged into the timeline
+        --       and will only expire it if it doesn't need to be in timeline
+        -- if displayType == NotificationDisplayType.STICKY_BALLOON or true then
+        if balloon == nil then
+            notification:expire()
+        else
+            balloon:addListener({
+                onClosed = function()
+                    notification:expire()
+                end,
+            })
         end
+        -- end
     end
 end
 
