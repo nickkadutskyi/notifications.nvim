@@ -62,12 +62,17 @@ end
 function NotificationManager:showNotification(notification)
     notification:assertHasTitleOrContent()
 
-    if not conf:isRegistered(notification:getGroupId()) then
-        return
+    local groupId = notification:getGroupId()
+    local settings = conf:getSettings(groupId)
+    local displayType = settings:getDisplayType()
+
+    if not conf:isRegistered(groupId) then
+        -- TODO: consider registering unknown groups
+        notification:expire()
     end
 
-    if not conf.SHOW_BALLOONS then
-        return
+    if not conf.SHOW_BALLOONS or displayType == NotificationDisplayType.NONE then
+        notification:expire()
     end
 
     utils.invokeLater(function()
@@ -89,7 +94,18 @@ function NotificationManager:doShowNotification(notification)
     elseif displayType == NotificationDisplayType.TOOL_WINDOW_BALLOON then
         -- Do nothing because not implemented TODO: maybe log if logging turned on
     elseif displayType == NotificationDisplayType.BALLOON or displayType == NotificationDisplayType.STICKY_BALLOON then
-        self:notifyByBalloon(notification, displayType)
+        local balloon = self:notifyByBalloon(notification, displayType)
+        if displayType == NotificationDisplayType.STICKY_BALLOON then
+            if balloon == nil then
+                notification:expire()
+            else
+                balloon:addListener({
+                    onClosed = function()
+                        notification:expire()
+                    end,
+                })
+            end
+        end
     end
 end
 
