@@ -15,8 +15,9 @@ function BalloonLayoutClass:new()
     return self
 end
 
+---@param balloon Balloon
 function BalloonLayout:add(balloon)
-    if not balloon or not balloon.open then
+    if not balloon or not balloon.show then
         return
     end
 
@@ -31,15 +32,7 @@ function BalloonLayout:add(balloon)
     row = math.max(row, 0)
     col = math.max(col, 0)
 
-    balloon:open(row, col)
-
-    -- Temporary: auto close after 5 seconds
-    vim.defer_fn(function()
-        if balloon._window and vim.api.nvim_win_is_valid(balloon._window) then
-            vim.api.nvim_win_close(balloon._window, true)
-            balloon._window = nil
-        end
-    end, 10000)
+    balloon:show(row, col)
 end
 
 -- --- FIXME: porbably should have a separate layout for each tabpage

@@ -1,4 +1,4 @@
-local NotificationManager = require("notifications.notifications_manager")
+local notifications_manager = require("notifications.notifications_manager")
 local utils = require("notifications.utils")
 
 --- Increasing counter for unique notification IDs within the session.
@@ -17,6 +17,8 @@ local NotificationClass = {}
 ---@field private _level integer
 ---@field private _timestamp integer Time (in seconds since Jan 1, 1970) when notification was created.
 ---@field private _icon string|nil
+---@field private _balloon Balloon|nil
+---@field private _expired boolean
 local Notification = {}
 Notification.__index = Notification
 
@@ -56,6 +58,7 @@ function NotificationClass:new(groupId, title, content, level)
         _content = content or "",
         _level = level or vim.log.levels.INFO,
         _icon = nil,
+        _expired = false,
     }, Notification)
 end
 
@@ -64,7 +67,7 @@ end
 --- INSTANCE METHODS -----------------------------------------------------------
 
 function Notification:notify()
-    NotificationManager:showNotification(self)
+    notifications_manager:showNotification(self)
 end
 
 function Notification:getTimestamp()
@@ -134,6 +137,56 @@ function Notification:setIcon(icon)
     return self
 end
 
+---@public
+---@param balloon Balloon
+---@return nil
+function Notification:setBalloon(balloon)
+    local old_balloon = self._balloon
+    self._balloon = balloon
+    self:doHideBalloon(old_balloon)
+    balloon:addListener({
+        onClosed = function()
+            -- remove reference to balloon when it is closed to avoid
+            -- memory leaks and allow GC to collect it
+            if self._balloon == balloon then
+                self._balloon = nil
+            end
+        end,
+    })
+end
+
+---@return Balloon|nil
+function Notification:getBalloon()
+    return self._balloon
+end
+
+---@public
+---@overload fun(self: Notification): nil
+function Notification:hideBalloon()
+    local balloon = self._balloon
+    self._balloon = nil
+    self:doHideBalloon(balloon)
+end
+
+---@private
+---@param balloon Balloon|nil
+function Notification:doHideBalloon(balloon)
+    if balloon ~= nil then
+        utils.invokeLater(function()
+            balloon:hide()
+        end)
+    end
+end
+
+function Notification:expire()
+    if self._expired then
+        return
+    end
+
+    self._expired = true
+    self:hideBalloon()
+end
+
 --- PREDICATES -----------------------------------------------------------------
 
 ---@return boolean
@@ -146,11 +199,17 @@ function Notification:hasContent()
     return not utils.isEmptyStr(self._content)
 end
 
+---@throws error if notification has no title and content
 function Notification:assertHasTitleOrContent()
     assert(
         self:hasTitle() or self:hasContent(),
         "Notification must have title or/and content; groupId: " .. self._groupId
     )
+end
+
+---@return boolean
+function Notification:isExpired()
+    return self._expired
 end
 
 --- METAMETHODS ----------------------------------------------------------------

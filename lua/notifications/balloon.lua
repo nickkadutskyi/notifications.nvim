@@ -16,11 +16,16 @@ local namespace = vim.api.nvim_create_namespace("notifications.balloon")
 ---@field private _MAX_TEXT_WIDTH integer
 ---@field private _MAX_TEXT_LINES integer
 ---@field private _PADDING_WIDTH integer
+---@field private _listeners BalloonListener[]
+---@field private _isDisposed boolean
 local Balloon = {
     class = BalloonClass,
     _MAX_TEXT_WIDTH = 44,
     _MAX_TEXT_LINES = 4,
     _PADDING_WIDTH = 3,
+    _listeners = {},
+    _height = 1,
+    _isDisposed = false,
 }
 Balloon.__index = Balloon
 
@@ -35,7 +40,6 @@ function BalloonClass:new(notification)
         id = notification.id,
         groupId = notification:getGroupId(),
         _notification = notification,
-        _height = 1,
     }, Balloon)
     ---@diagnostic disable-next-line: invisible
     self:_createBuffer()
@@ -204,7 +208,8 @@ end
 
 ---@param row integer
 ---@param col integer
-function Balloon:open(row, col)
+function Balloon:show(row, col)
+    assert(self._isDisposed == false, "Balloon is already disposed")
     -- we create the window only once, to update window params create a different
     -- method
     if self._window ~= nil then
@@ -270,6 +275,47 @@ function Balloon:_configureWindow()
     for name, value in pairs(options) do
         pcall(vim.api.nvim_set_option_value, name, value, { win = self._window })
     end
+end
+
+---@public
+function Balloon:hide()
+    if self._isDisposed then
+        return
+    end
+
+    self._isDisposed = true
+
+    for _, listener in ipairs(self._listeners) do
+        if type(listener.onClosed) == "function" then
+            listener.onClosed(self)
+        end
+    end
+
+    if self._window ~= nil and vim.api.nvim_win_is_valid(self._window) then
+        vim.api.nvim_win_close(self._window, true)
+        self._window = nil
+    end
+
+    if self._buffer ~= nil and vim.api.nvim_buf_is_valid(self._buffer) then
+        vim.api.nvim_buf_delete(self._buffer, { force = true })
+        self._buffer = nil
+    end
+end
+
+---@class BalloonListener
+---@field onClosed fun(balloon: Balloon)
+
+---@public
+---@param listener BalloonListener
+---@return nil
+function Balloon:addListener(listener)
+    table.insert(self._listeners, listener)
+end
+
+---@public
+---@return boolean
+function Balloon:isDisposed()
+    return self._isDisposed
 end
 
 return BalloonClass

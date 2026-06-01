@@ -1,15 +1,61 @@
 local utils = require("notifications.utils")
 local conf = require("notifications.config")
 local tab_manager = require("notifications.tab_manager")
+
 local NotificationDisplayType = require("notifications.notification_display_type")
 local Balloon = require("notifications.balloon")
 
+---@class NotificationManagerClass
 local NotificationManagerClass = {}
-local NotificationManager = {}
+
+---@class NotificationManage
+---@field private _isFocused boolean
+---@field private _focusListeners fun()[]
+local NotificationManager = { class = NotificationManagerClass }
 NotificationManager.__index = NotificationManager
 
+NotificationManagerClass.metatable = NotificationManager
+
+--- CONSTRUCTOR ----------------------------------------------------------------
+
 function NotificationManagerClass:new()
-    return setmetatable({}, NotificationManager)
+    ---@diagnostic disable-next-line: redefined-local
+    local self = setmetatable({
+        _isFocused = true,
+        _focusListeners = {},
+    }, NotificationManager)
+
+    ---@diagnostic disable-next-line: invisible
+    self:addFocusListeners()
+
+    return self
+end
+
+--- STATIC METHODS -------------------------------------------------------------
+
+--- INSTANCE METHODS -----------------------------------------------------------
+
+---@private
+function NotificationManager:addFocusListeners()
+    local group = vim.api.nvim_create_augroup("notifications_focus_tracking", { clear = true })
+
+    vim.api.nvim_create_autocmd("FocusGained", {
+        group = group,
+        callback = function()
+            self._isFocused = true
+            for _, listener in ipairs(self._focusListeners) do
+                listener()
+            end
+            self._focusListeners = {}
+        end,
+    })
+
+    vim.api.nvim_create_autocmd("FocusLost", {
+        group = group,
+        callback = function()
+            self._isFocused = false
+        end,
+    })
 end
 
 ---@param notification Notification
@@ -58,15 +104,54 @@ function NotificationManager:notifyByBalloon(notification, displayType)
     end
 
     local balloon = Balloon:new(notification)
-    -- TODO: check if notification is not expired
-    -- TODO: add balloon to layout for renderig and management
+    notification:setBalloon(balloon)
+
+    if notification:isExpired() then
+        return nil
+    end
+
     layout:add(balloon)
-    -- TODO: add balloon listener to hide ballon after a delay depending on the display type
-    --       BALLOON: 10000 ms; STICKY_BALLOON: 300000 ms
+
+    if balloon:isDisposed() then
+        return nil
+    end
+
+    self:frameActivateBalloonListener(balloon, function()
+        if not balloon:isDisposed() then
+            local delay = displayType == NotificationDisplayType.STICKY_BALLOON and 300000 or 10000
+
+            vim.defer_fn(function()
+                if not balloon:isDisposed() then
+                    balloon:hide()
+                end
+            end, delay)
+        end
+    end)
 
     -- Probably balloon will manage its rendering while layout will manage balloon's position
-
     return balloon
+end
+
+---@param balloon Balloon
+---@param callback fun()
+function NotificationManager:frameActivateBalloonListener(balloon, callback)
+    if self._isFocused then
+        callback()
+    else
+        table.insert(self._focusListeners, callback)
+
+        -- Clear the callback if the balloon is closed before it ever triggers
+        balloon:addListener({
+            onClosed = function()
+                for i, listener in ipairs(self._focusListeners) do
+                    if listener == callback then
+                        table.remove(self._focusListeners, i)
+                        break
+                    end
+                end
+            end,
+        })
+    end
 end
 
 local manager = NotificationManagerClass:new()

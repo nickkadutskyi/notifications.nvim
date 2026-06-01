@@ -1,5 +1,7 @@
 -- Inits tabpage manager
 require("notifications.tab_manager")
+-- Inits notification manager
+require("notifications.notifications_manager")
 
 local notifications = require("notifications")
 
@@ -47,17 +49,25 @@ vim.api.nvim_create_user_command("NotificationsTestNoTitle", function()
 end, {})
 
 vim.api.nvim_create_user_command("NotificationsTestTitleSubtitle2", function()
-    notifications.notify("This is the main content area testing both title and subtitle displaying correctly.", vim.log.levels.INFO, {
-        title = "My Title which is super long so overflow",
-        subtitle = "My Subtitle",
-    })
+    notifications.notify(
+        "This is the main content area testing both title and subtitle displaying correctly.",
+        vim.log.levels.INFO,
+        {
+            title = "My Title which is super long so overflow",
+            subtitle = "My Subtitle",
+        }
+    )
 end, {})
 
 vim.api.nvim_create_user_command("NotificationsTestTitleSubtitle", function()
-    notifications.notify("This is the main content area testing bothse title and subtitle displaying correctly.", vim.log.levels.INFO, {
-        title = "My Title",
-        subtitle = "My Subtitle",
-    })
+    notifications.notify(
+        "This is the main content area testing bothse title and subtitle displaying correctly.",
+        vim.log.levels.INFO,
+        {
+            title = "My Title",
+            subtitle = "My Subtitle",
+        }
+    )
 end, {})
 
 vim.api.nvim_create_user_command("NotificationsTestError", function()
@@ -69,14 +79,22 @@ vim.api.nvim_create_user_command("NotificationsTestHint", function()
 end, {})
 
 vim.api.nvim_create_user_command("NotificationsTestWarn", function()
-    notifications.notify("This is a warning message. Proceed with caution.", vim.log.levels.WARN, { title = "Warning Title" })
+    notifications.notify(
+        "This is a warning message. Proceed with caution.",
+        vim.log.levels.WARN,
+        { title = "Warning Title" }
+    )
 end, {})
 
 vim.api.nvim_create_user_command("NotificationsTestWithIcon", function()
-    notifications.notify("This balloon uses a custom star icon instead of the default level-based one.", vim.log.levels.INFO, {
-        title = "Custom Icon",
-        icon = "★",
-    })
+    notifications.notify(
+        "This balloon uses a custom star icon instead of the default level-based one.",
+        vim.log.levels.INFO,
+        {
+            title = "Custom Icon",
+            icon = "★",
+        }
+    )
 end, {})
 
 vim.api.nvim_create_user_command("NotificationsTestStack", function()
@@ -85,4 +103,19 @@ vim.api.nvim_create_user_command("NotificationsTestStack", function()
             title = "Stacked #" .. i,
         })
     end
+end, {})
+
+vim.api.nvim_create_user_command("NotificationsTestDelay", function()
+    -- Start a libuv timer
+    local timer = vim.uv.new_timer()
+    timer:start(
+        3000,
+        0,
+        vim.schedule_wrap(function()
+            notifications.notify("This notification appeared after a 3 second delay.", vim.log.levels.INFO, {
+                title = "Delayed Notification",
+            })
+            timer:close()
+        end)
+    )
 end, {})
