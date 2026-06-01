@@ -107,26 +107,30 @@ function Balloon:_createBuffer()
         raw_title = raw_title .. ": "
     end
 
-    ---@type string[]
-    local lines = {}
-    ---@type string|nil
-    local title
-
-    local overflow
+    local lines = {} ---@type string[]
+    local title ---@type string|nil
+    local content = {} ---@type string[]
+    local overflow = false ---@type boolean
 
     if not utils.isEmptyStr(raw_title) then
         title = raw_title .. (not utils.isEmptyStr(raw_subtitle) and raw_subtitle or "")
         title = utils.truncate(title, self._MAX_TEXT_WIDTH)
         table.insert(lines, title)
-        local l, overflow =
-            utils.wrap(self._notification:getContent(), self._MAX_TEXT_WIDTH, self._MAX_TEXT_LINES - 1, false)
-        vim.list_extend(lines, l)
-    else
-        lines, overflow = utils.wrap(self._notification:getContent(), self._MAX_TEXT_WIDTH, self._MAX_TEXT_LINES, false)
     end
+
+    content, overflow = utils.wrap(self._notification:getContent(), self._MAX_TEXT_WIDTH, self._MAX_TEXT_LINES - #lines)
+    vim.list_extend(lines, content)
 
     if #lines == 0 then
         lines = { "" }
+    end
+
+    -- TODO: make it possible to focus the window and when you focus it should
+    --       uncover the full content
+    -- WARN: technically it should check if collapsed but there is no such
+    --       feature now
+    if overflow then
+        lines[#lines] = lines[#lines] .. " "
     end
 
     self._height = math.min(#lines, self._MAX_TEXT_LINES)
