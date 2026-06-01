@@ -101,13 +101,14 @@ end
 ---@param max_width integer
 ---@param max_lines integer
 ---@param suffix string|boolean|nil
----@return string[]
+---@return string[] linses wrapped text split into lines
+---@return boolean overflowed whether the text was truncated due to max_lines limit
 function M.wrap(text, max_width, max_lines, suffix)
     if type(text) ~= "string" or max_lines <= 0 then
-        return {}
+        return {}, false
     end
     if text == "" then
-        return { "" }
+        return { "" }, false
     end
 
     if suffix == nil or suffix == true then
@@ -179,7 +180,7 @@ function M.wrap(text, max_width, max_lines, suffix)
 
         if paragraph == "" then
             if not push("") then
-                return lines
+                return lines, true
             end
         else
             for word in paragraph:gmatch("%S+") do
@@ -189,7 +190,7 @@ function M.wrap(text, max_width, max_lines, suffix)
                         current = candidate
                     else
                         if not push(current) then
-                            return lines
+                            return lines, true
                         end
                         current = part
                     end
@@ -197,12 +198,12 @@ function M.wrap(text, max_width, max_lines, suffix)
             end
 
             if current ~= "" and not push(current) then
-                return lines
+                return lines, true
             end
         end
     end
 
-    return lines
+    return lines, false
 end
 
 return M

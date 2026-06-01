@@ -112,16 +112,17 @@ function Balloon:_createBuffer()
     ---@type string|nil
     local title
 
+    local overflow
+
     if not utils.isEmptyStr(raw_title) then
         title = raw_title .. (not utils.isEmptyStr(raw_subtitle) and raw_subtitle or "")
         title = utils.truncate(title, self._MAX_TEXT_WIDTH)
         table.insert(lines, title)
-        vim.list_extend(
-            lines,
-            utils.wrap(self._notification:getContent(), self._MAX_TEXT_WIDTH, self._MAX_TEXT_LINES - 1)
-        )
+        local l, overflow =
+            utils.wrap(self._notification:getContent(), self._MAX_TEXT_WIDTH, self._MAX_TEXT_LINES - 1, false)
+        vim.list_extend(lines, l)
     else
-        lines = utils.wrap(self._notification:getContent(), self._MAX_TEXT_WIDTH, self._MAX_TEXT_LINES)
+        lines, overflow = utils.wrap(self._notification:getContent(), self._MAX_TEXT_WIDTH, self._MAX_TEXT_LINES, false)
     end
 
     if #lines == 0 then
