@@ -1,7 +1,7 @@
 local BalloonLayout = require("notifications.balloon_layout")
 
 ---@class TabManagerClass
----@field metatable TabManager
+---@field metatable TabManager metatable for TabManager instances. Use with `getmetatable(obj) == TabManager.metatable`.
 local TabManagerClass = {}
 
 ---@class TabManager

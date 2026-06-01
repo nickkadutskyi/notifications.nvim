@@ -12,21 +12,16 @@ local namespace = vim.api.nvim_create_namespace("notifications.balloon")
 ---@field private _notification Notification
 ---@field private _buffer integer|nil
 ---@field private _window integer|nil
----@field private _height integer
+---@field private _height integer|nil calculated when buffer is created
 ---@field private _MAX_TEXT_WIDTH integer
 ---@field private _MAX_TEXT_LINES integer
 ---@field private _PADDING_WIDTH integer
 ---@field private _listeners BalloonListener[]
 ---@field private _isDisposed boolean
-local Balloon = {
-    class = BalloonClass,
-    _MAX_TEXT_WIDTH = 44,
-    _MAX_TEXT_LINES = 4,
-    _PADDING_WIDTH = 3,
-    _listeners = {},
-    _height = 1,
-    _isDisposed = false,
-}
+---@field private _preferredWidth integer|nil
+---@field private _bounds BalloonBounds
+---@field private _position {row: integer, col: integer}|nil
+local Balloon = { class = BalloonClass }
 Balloon.__index = Balloon
 
 BalloonClass.metatable = Balloon
@@ -40,9 +35,17 @@ function BalloonClass:new(notification)
         id = notification.id,
         groupId = notification:getGroupId(),
         _notification = notification,
+        _MAX_TEXT_WIDTH = 44,
+        _MAX_TEXT_LINES = 4,
+        _PADDING_WIDTH = 3,
+        _listeners = {},
+        _height = nil,
+        _isDisposed = false,
+        _preferredWidth = nil,
+        _position = nil,
     }, Balloon)
-    ---@diagnostic disable-next-line: invisible
-    self:_createBuffer()
+    -- ---@diagnostic disable-next-line: invisible
+    -- self:_createBuffer()
     return self
 end
 
@@ -201,14 +204,33 @@ function Balloon:_resolveIconHighlight()
     end
 end
 
----@return integer
-function Balloon:getHeight()
-    return self._height
+---@public
+---@param height integer
+---@return Balloon
+function Balloon:setMaxHeight(height)
+    self._MAX_TEXT_LINES = height - 2 -- subtracting borders
+    return self
 end
 
----@param row integer
----@param col integer
-function Balloon:show(row, col)
+---@return integer|nil
+function Balloon:getHeight()
+    -- Adding 2 for top and bottom borders
+    return self._height + 2
+end
+
+---@public
+function Balloon:buildBuffer()
+    self:_createBuffer()
+end
+
+---@class BalloonBounds
+---@field row integer|nil
+---@field col integer|nil
+---@field width integer|nil
+---@field height integer|nil
+
+---@param bounds BalloonBounds|nil
+function Balloon:show(bounds)
     assert(self._isDisposed == false, "Balloon is already disposed")
     -- we create the window only once, to update window params create a different
     -- method
@@ -216,15 +238,31 @@ function Balloon:show(row, col)
         return
     end
 
-    local width = self._MAX_TEXT_WIDTH + self._PADDING_WIDTH * 2
-    local height = self:getHeight()
+    bounds = bounds or self._bounds
+    if bounds.width ~= nil then
+        self:setWidth(bounds.width)
+    end
+    if bounds.height ~= nil then
+        self:setMaxHeight(bounds.height)
+    end
+
+    self:_createBuffer()
+
+    -- detracting borders
+    local width = self:getWidth() - 2
+    local height = self:getHeight() - 2
+
+    self._position = {
+        row = bounds.row,
+        col = bounds.col,
+    }
 
     self._window = vim.api.nvim_open_win(self._buffer, false, {
         relative = "editor",
         width = width,
         height = height,
-        row = row,
-        col = col,
+        row = self._position.row,
+        col = self._position.col,
         style = "",
         border = {
             { "▕", "NotificationFloatBorderOuter" }, -- Top Left corner
@@ -302,6 +340,10 @@ function Balloon:hide()
     end
 end
 
+function Balloon:dispose()
+    self:hide()
+end
+
 ---@class BalloonListener
 ---@field onClosed fun(balloon: Balloon)
 
@@ -316,6 +358,59 @@ end
 ---@return boolean
 function Balloon:isDisposed()
     return self._isDisposed
+end
+
+---@public
+---@param width integer
+---@return Balloon
+function Balloon:setWidth(width)
+    self._MAX_TEXT_WIDTH = width
+        -- subtracting right padding
+        - self._PADDING_WIDTH
+        -- subtracting left padding
+        - math.max(self._PADDING_WIDTH, 2)
+        -- subtracting borders
+        - 2
+    return self
+end
+
+---@return integer width width
+function Balloon:getWidth()
+    return self._MAX_TEXT_WIDTH
+        -- right padding
+        + self._PADDING_WIDTH
+        -- left padding will always be at least 2 characters because of the icon
+        + math.max(2, self._PADDING_WIDTH)
+        -- adding 2 for the border
+        + 2
+end
+
+---@param bounds BalloonBounds
+function Balloon:setBounds(bounds)
+    self._bounds = bounds
+    if self._position then
+        self:_updatePosition(bounds)
+    end
+end
+
+---@private
+function Balloon:_updatePosition(bounds)
+    if self._window == nil or self._position == nil then
+        return
+    end
+
+    self._position = {
+        row = bounds.row,
+        col = bounds.col,
+    }
+
+    utils.invokeLater(function()
+        vim.api.nvim_win_set_config(self._window, {
+            relative = "editor",
+            row = self._position.row,
+            col = self._position.col,
+        })
+    end)
 end
 
 return BalloonClass

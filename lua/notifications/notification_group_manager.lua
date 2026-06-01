@@ -8,12 +8,15 @@ local NotificationDisplayType = require("notifications.notification_display_type
 ---@field pluginId string|nil
 
 ---@class NotificationGroupManagerClass
+---@field metatable NotificationGroupManager Metatable for NotificationGroupManager instances. Use with `getmetatable(obj) == NotificationGroupManager.metatable`.
 local NotificationGroupManagerClass = {}
 
 ---@class NotificationGroupManager
 ---@field private _registeredGroups table<string, NotificationGroup>
-local NotificationGroupManager = {}
+local NotificationGroupManager = { class = NotificationGroupManagerClass }
 NotificationGroupManager.__index = NotificationGroupManager
+
+NotificationGroupManagerClass.metatable = NotificationGroupManager
 
 ---@return NotificationGroupManager
 function NotificationGroupManagerClass:new()

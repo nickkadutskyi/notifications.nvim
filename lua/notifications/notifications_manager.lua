@@ -1,11 +1,10 @@
 local utils = require("notifications.utils")
-local conf = require("notifications.config")
-local tab_manager = require("notifications.tab_manager")
 
 local NotificationDisplayType = require("notifications.notification_display_type")
 local Balloon = require("notifications.balloon")
 
 ---@class NotificationManagerClass
+---@field public metatable NotificationManager Metatable for NotificationManager instances. Use with `getmetatable(obj) == NotificationManager.metatable`.
 local NotificationManagerClass = {}
 
 ---@class NotificationManage
@@ -62,6 +61,8 @@ end
 function NotificationManager:showNotification(notification)
     notification:assertHasTitleOrContent()
 
+    local conf = require("notifications.config")
+
     local groupId = notification:getGroupId()
     local settings = conf:getSettings(groupId)
     local displayType = settings:getDisplayType()
@@ -86,6 +87,7 @@ end
 function NotificationManager:doShowNotification(notification)
     ---@type string
     local groupId = notification:getGroupId()
+    local conf = require("notifications.config")
     local settings = conf:getSettings(groupId)
     local displayType = settings:getDisplayType()
 
@@ -118,7 +120,7 @@ end
 ---@param displayType NotificationDisplayType
 ---@return Balloon|nil
 function NotificationManager:notifyByBalloon(notification, displayType)
-    local layout = tab_manager:getCurrentTabLayout()
+    local layout = require("notifications.tab_manager"):getCurrentTabLayout()
     if layout == nil then
         return
     end

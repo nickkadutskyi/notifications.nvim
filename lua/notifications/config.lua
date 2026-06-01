@@ -1,4 +1,3 @@
-local group_manager = require("notifications.notification_group_manager")
 local NotificationSettings = require("notifications.notification_settings")
 local NotificationDisplayType = require("notifications.notification_display_type")
 
@@ -26,7 +25,7 @@ end
 ---@param groupId string
 ---@return boolean
 function NotificationsConfgiuration:isRegistered(groupId)
-    return group_manager:isGroupRegistered(groupId)
+    return require("notifications.notification_group_manager"):isGroupRegistered(groupId)
 end
 
 ---@public
@@ -86,7 +85,7 @@ end
 ---@param groupId string
 ---@return NotificationSettings
 function NotificationsConfgiuration:getDefaultSettings(groupId)
-    local group = group_manager:getNotificationGroup(groupId)
+    local group = require("notifications.notification_group_manager"):getNotificationGroup(groupId)
     if group ~= nil then
         return NotificationSettings:new(groupId, group:getDisplayType())
     end

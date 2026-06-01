@@ -1,4 +1,3 @@
-local notifications_manager = require("notifications.notifications_manager")
 local utils = require("notifications.utils")
 
 --- Increasing counter for unique notification IDs within the session.
@@ -19,7 +18,7 @@ local NotificationClass = {}
 ---@field private _icon string|nil
 ---@field private _balloon Balloon|nil
 ---@field private _expired boolean
-local Notification = {}
+local Notification = { class = NotificationClass }
 Notification.__index = Notification
 
 NotificationClass.metatable = Notification
@@ -67,7 +66,7 @@ end
 --- INSTANCE METHODS -----------------------------------------------------------
 
 function Notification:notify()
-    notifications_manager:showNotification(self)
+    require("notifications.notifications_manager"):showNotification(self)
 end
 
 function Notification:getTimestamp()
