@@ -207,4 +207,33 @@ function M.wrap(text, max_width, max_lines, suffix)
     return lines, false
 end
 
+function M.instanceof(obj, class)
+    if obj == nil or class == nil then
+        return false
+    end
+
+    -- Only tables can have metatables
+    if type(obj) ~= "table" then
+        return false
+    end
+
+    local mt = getmetatable(obj)
+    while mt do
+        if mt == class then
+            return true
+        end
+
+        -- Support both common inheritance patterns
+        if mt.__index and mt.__index ~= mt then
+            mt = mt.__index
+        else
+            mt = getmetatable(mt)
+        end
+    end
+
+    return false
+end
+
+M.is_a = M.instanceof
+
 return M

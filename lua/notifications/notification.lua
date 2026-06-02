@@ -16,7 +16,7 @@ local NotificationClass = {}
 ---@field private _level integer
 ---@field private _timestamp integer Time (in seconds since Jan 1, 1970) when notification was created.
 ---@field private _icon string|nil
----@field private _balloon Balloon|nil
+---@field private _balloon NotificationBalloon|nil
 ---@field private _expired boolean
 local Notification = { class = NotificationClass }
 Notification.__index = Notification
@@ -137,7 +137,7 @@ function Notification:setIcon(icon)
 end
 
 ---@public
----@param balloon Balloon
+---@param balloon NotificationBalloon
 ---@return nil
 function Notification:setBalloon(balloon)
     local old_balloon = self._balloon
@@ -154,7 +154,7 @@ function Notification:setBalloon(balloon)
     })
 end
 
----@return Balloon|nil
+---@return NotificationBalloon|nil
 function Notification:getBalloon()
     return self._balloon
 end
@@ -168,7 +168,7 @@ function Notification:hideBalloon()
 end
 
 ---@private
----@param balloon Balloon|nil
+---@param balloon NotificationBalloon|nil
 function Notification:doHideBalloon(balloon)
     if balloon ~= nil then
         utils.invokeLater(function()

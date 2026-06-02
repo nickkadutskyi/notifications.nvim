@@ -1,13 +1,13 @@
 local utils = require("notifications.utils")
 
 local NotificationDisplayType = require("notifications.notification_display_type")
-local Balloon = require("notifications.balloon")
+local NotificationBalloon = require("notifications.notification_balloon")
 
 ---@class NotificationManagerClass
 ---@field public metatable NotificationManager Metatable for NotificationManager instances. Use with `getmetatable(obj) == NotificationManager.metatable`.
 local NotificationManagerClass = {}
 
----@class NotificationManage
+---@class NotificationManager
 ---@field private _isFocused boolean
 ---@field private _focusListeners fun()[]
 local NotificationManager = { class = NotificationManagerClass }
@@ -118,14 +118,14 @@ end
 ---@private
 ---@param notification Notification
 ---@param displayType NotificationDisplayType
----@return Balloon|nil
+---@return NotificationBalloon|nil
 function NotificationManager:notifyByBalloon(notification, displayType)
     local layout = require("notifications.tab_manager"):getCurrentTabLayout()
     if layout == nil then
         return
     end
 
-    local balloon = Balloon:new(notification)
+    local balloon = NotificationBalloon.new(notification)
     notification:setBalloon(balloon)
 
     if notification:isExpired() then
@@ -154,7 +154,7 @@ function NotificationManager:notifyByBalloon(notification, displayType)
     return balloon
 end
 
----@param balloon Balloon
+---@param balloon NotificationBalloon
 ---@param callback fun()
 function NotificationManager:frameActivateBalloonListener(balloon, callback)
     if self._isFocused then
