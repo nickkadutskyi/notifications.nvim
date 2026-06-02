@@ -148,10 +148,8 @@ function BalloonLayout:_remove(balloonOrNotification, hide)
     local balloon
     if type(balloonOrNotification) == "table" and getmetatable(balloonOrNotification) == Notification.metatable then
         -- it's a notification, try to get balloon from it
-        local b = balloonOrNotification:getBalloon()
-        if b ~= nil then
-            balloon = b
-        else
+        balloon = balloonOrNotification:getBalloon()
+        if balloon == nil then
             return
         end
     end
@@ -169,12 +167,5 @@ function BalloonLayout:_remove(balloonOrNotification, hide)
         end
     end
 end
-
--- --- FIXME: porbably should have a separate layout for each tabpage
--- ---        so that somewhere whenever I switch to a new tabpage it should
--- ---        check if layout is present for that tab and create it.
--- ---        This should allow to dispatch notifications into different tabs.
--- local layout = BalloonLayoutClass:new()
--- return layout
 
 return BalloonLayoutClass

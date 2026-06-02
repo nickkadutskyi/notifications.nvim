@@ -18,7 +18,6 @@ local namespace = vim.api.nvim_create_namespace("notifications.balloon")
 ---@field private _PADDING_WIDTH integer
 ---@field private _listeners BalloonListener[]
 ---@field private _isDisposed boolean
----@field private _preferredWidth integer|nil
 ---@field private _bounds BalloonBounds
 ---@field private _position {row: integer, col: integer}|nil
 local Balloon = { class = BalloonClass }
@@ -41,7 +40,6 @@ function BalloonClass:new(notification)
         _listeners = {},
         _height = nil,
         _isDisposed = false,
-        _preferredWidth = nil,
         _position = nil,
     }, Balloon)
     -- ---@diagnostic disable-next-line: invisible
