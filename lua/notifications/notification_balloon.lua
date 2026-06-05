@@ -160,27 +160,23 @@ function NotificationBalloon:_doBuildContent() ---@return BalloonContent
 
     if not u.isEmptyStr(title) then
         local title_len = math.min(#title, #raw_title)
-        vim.list_extend(extramarks, {
-            {
-                line = 0,
-                col = 0,
-                opts = {
-                    end_row = 0,
-                    end_col = title_len,
-                    hl_group = "NotificationTitle",
-                },
+        table.insert(extramarks, {
+            line = 0,
+            col = 0,
+            opts = {
+                end_row = 0,
+                end_col = title_len,
+                hl_group = "NotificationTitle",
             },
         })
         if not u.isEmptyStr(raw_subtitle) and #raw_title < self._maxContentWidth then
-            vim.list_extend(extramarks, {
-                {
-                    line = 0,
-                    col = #raw_title,
-                    opts = {
-                        end_row = 0,
-                        end_col = #raw_title + math.min(#raw_subtitle, self._maxContentWidth - #raw_title),
-                        hl_group = "NotificationSubtitle",
-                    },
+            table.insert(extramarks, {
+                line = 0,
+                col = #raw_title,
+                opts = {
+                    end_row = 0,
+                    end_col = #raw_title + math.min(#raw_subtitle, self._maxContentWidth - #raw_title),
+                    hl_group = "NotificationSubtitle",
                 },
             })
         end
