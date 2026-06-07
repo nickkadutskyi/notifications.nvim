@@ -149,7 +149,9 @@ function NotificationBalloon:_doBuildContent() ---@return BalloonContent
     -- WARN: technically it should check if collapsed but there is no such
     --       feature now
     if overflow then
-        lines[#lines] = lines[#lines] .. " "
+        local line_width = vim.fn.strdisplaywidth(lines[#lines])
+        local prefix_width = math.max(1, self._maxContentWidth - line_width + self._paddingX - 3)
+        lines[#lines] = lines[#lines] .. string.rep(" ", prefix_width) .. "  "
     end
 
     if #lines == 0 then

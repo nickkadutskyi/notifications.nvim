@@ -17,7 +17,7 @@ end, {})
 
 vim.api.nvim_create_user_command("NotificationsTestLongContent", function()
     notifications.notify(
-        "This is a long single line of content that should automatically wrap inside the balloon window using the available width. It should flow across multiple visual lines without manual newlines.",
+        "Amazon Q Developer IDE plugins will reach end of support on April 30, 2027. New accounts will no This is a long single line of content that should automatically wrap inside the balloon window using the available width. It should flow across multiple visual lines without manual newlines.",
         vim.log.levels.INFO,
         { title = "Wrapping Test" }
     )

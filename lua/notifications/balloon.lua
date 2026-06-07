@@ -45,7 +45,7 @@ function Balloon.new() ---@return Balloon balloon
         _height = nil,
         _maxContentWidth = 44,
         _maxContentHeight = 4,
-        _paddingX = 3,
+        _paddingX = 4,
         _listeners = {},
         _isDisposed = false,
         _statuscolumn = "%!v:lua.require'notifications.balloon'.statuscolumn()",
@@ -79,13 +79,12 @@ end
 
 ---@param height integer
 function Balloon:setMaxHeight(height) ---@return Balloon balloon
-    self._maxContentHeight = height - 2 -- subtracting borders
+    self._maxContentHeight = height - self:_getBorderVerticalPadding()
     return self
 end
 
 function Balloon:getHeight() ---@return integer|nil
-    -- Adding 2 for top and bottom borders
-    return self._height ~= nil and self._height + 2 or nil
+    return self._height ~= nil and (self._height + self:_getBorderVerticalPadding()) or nil
 end
 
 ---@param width integer
@@ -196,14 +195,14 @@ function Balloon:show(bounds)
         relative = "editor",
         -- detracting borders
         width = self:getWidth() - 2,
-        height = self:getHeight() - 2,
+        height = self._height,
         row = self._position.row,
         col = self._position.col,
         style = "",
         border = self._border,
         zindex = 50,
         -- TODO: make it focusable later when decided on what it should do
-        focusable = false,
+        focusable = true,
     })
 
     self:_configureWindow()
@@ -307,6 +306,51 @@ function Balloon:_createBuffer() ---@return nil void
     end
 
     self._buffer = self:_buildBuffer()
+end
+
+local borders_padding = {
+    none = 0,
+    shadow = 1,
+    single = 2,
+    double = 2,
+    rounded = 2,
+    bold = 2,
+    solid = 2,
+}
+
+---@private
+function Balloon:_getBorderVerticalPadding() ---@return integer
+    local border = self._border or vim.o.winborder
+
+    if type(border) == "table" then
+        local top_border, bottom_border = "", ""
+
+        if #border > 0 and #border <= 4 then
+            local part = border[2] or border[1]
+            top_border = type(part) == "table" and (part[1] or "") or part
+            bottom_border = top_border
+        elseif #border == 8 then
+            top_border = type(border[2]) == "table" and (border[2][1] or "") or border[2]
+            bottom_border = type(border[6]) == "table" and (border[6][1] or "") or border[6]
+        end
+
+        return (top_border ~= "" and 1 or 0) + (bottom_border ~= "" and 1 or 0)
+    end
+
+    if type(border) == "string" then
+        border = vim.split(border, ",")
+        if #border == 1 then
+            border = border[1]
+        elseif #border ~= 8 then
+            border = "none"
+        end
+    end
+
+    if borders_padding[border] ~= nil then
+        return borders_padding[border]
+    end
+
+    return 0
 end
 
 return Balloon

@@ -26,7 +26,7 @@ function BalloonLayoutClass:new()
     local self = setmetatable({
         -- TODO: make it configurable
         _visibleCount = 3,
-        _balloonWidth = 50,
+        _balloonWidth = 58,
         _balloons = {},
         _collapsedBalloons = {},
     }, BalloonLayout)
