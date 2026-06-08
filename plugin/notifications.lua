@@ -119,3 +119,18 @@ vim.api.nvim_create_user_command("NotificationsTestDelay", function()
         end)
     )
 end, {})
+
+vim.api.nvim_create_user_command("NotificationsTestVaried", function()
+    local n = notifications.notify
+    local function d(fn, ms) vim.defer_fn(fn, ms) end
+    d(function() n("Short", vim.log.levels.INFO, { title = "T" }) end, 0)
+    d(function() n("Medium content here.", vim.log.levels.WARN, { title = "Medium Title", subtitle = "Sub" }) end, 1200)
+    d(function() n(string.rep("Long content ", 10), vim.log.levels.ERROR, { title = string.rep("L", 50), subtitle = string.rep("S", 30) }) end, 2400)
+    d(function() n("No title", vim.log.levels.DEBUG) end, 3600)
+    d(function() n("Only subtitle", vim.log.levels.INFO, { subtitle = "Sub only" }) end, 4800)
+    d(function() n("Very long title test", vim.log.levels.TRACE, { title = "This title is extremely long and will truncate" }) end, 6000)
+    d(function() n("Short", vim.log.levels.OFF, { title = "T", subtitle = "S" }) end, 7200)
+    d(function() n(string.rep("x", 100), vim.log.levels.INFO, { title = "C" }) end, 8400)
+    d(function() n("Content only no title sub", vim.log.levels.WARN) end, 9600)
+    d(function() n("Mixed", vim.log.levels.ERROR, { title = "Title", subtitle = "Subtitle longish" }) end, 10800)
+end, {})
