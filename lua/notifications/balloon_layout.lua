@@ -26,7 +26,7 @@ function BalloonLayoutClass.new()
     ---@diagnostic disable-next-line: redefined-local
     local self = setmetatable({
         -- TODO: make it configurable
-        _visibleCount = 3,
+        _visibleCount = 4,
         _balloonWidth = 58,
         _balloons = {},
         _collapsedInfoBalloon = nil,
