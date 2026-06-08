@@ -125,6 +125,7 @@ function BalloonLayout:_addNewBalloon(balloon)
                 self._collapsedInfoBalloon:dispose()
             end
             u.invokeLater(function()
+                self:_calculateSize()
                 self:_relayout()
             end)
         end,
