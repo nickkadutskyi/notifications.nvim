@@ -85,7 +85,6 @@ function BalloonLayout:_setBounds(balloons, startCol, bottomRow)
         if balloon:isCollapsed() then
             height = (balloon:getHeight() or 1)
         else
-            print("hello: " .. vim.inspect(extra_space))
             height = (math.min(extra_space + balloon:getMaxHeight(), balloon:getHeight()) or 1)
         end
         ---@type BalloonBounds
