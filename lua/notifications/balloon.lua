@@ -357,8 +357,21 @@ function Balloon:_createBuffer() ---@return boolean
     self:_buildContent(buffer)
     self:_buildBufferEnd(buffer)
     self._buffer = buffer
+    self:_setupKeymaps(buffer)
 
     return true
+end
+
+---@private
+function Balloon:_setupKeymaps(buffer)
+    vim.keymap.set("n", "q", function()
+        self:dispose()
+    end, {
+        buffer = buffer,
+        nowait = true,
+        silent = true,
+        desc = "Close notification",
+    })
 end
 
 local borders_padding = {
