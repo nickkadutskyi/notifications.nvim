@@ -101,8 +101,8 @@ function NotificationBalloon:_resolveIconHighlight()
 end
 
 ---@public
-function NotificationBalloon:buildBuffer()
-    self:_createBuffer()
+function NotificationBalloon:buildBuffer() ---@return boolean
+    return self:_createBuffer() or self:_updateBuffer()
 end
 
 ---@private
@@ -132,8 +132,9 @@ function NotificationBalloon:_doBuildContent() ---@return BalloonContent
     local extramarks = {} ---@type {line:integer, col: integer, opts:vim.api.keyset.set_extmark}[]
 
     local title ---@type string|nil
-    local content = {} ---@type string[]
-    local overflow = false ---@type boolean
+    local short_cont = {} ---@type string[]
+    local full_cont = {} ---@type string[]
+    local overflowed = false ---@type boolean
 
     if not u.isEmptyStr(raw_title) then
         title = raw_title .. (not u.isEmptyStr(raw_subtitle) and raw_subtitle or "")
@@ -141,24 +142,22 @@ function NotificationBalloon:_doBuildContent() ---@return BalloonContent
         table.insert(lines, title)
     end
 
-    content, overflow = u.wrap(self._notification:getContent(), self._maxContentWidth, self._maxContentHeight - #lines)
-    vim.list_extend(lines, content)
+    short_cont, full_cont, overflowed =
+        u.wrap(self._notification:getContent(), self._maxContentWidth, self._maxContentHeight - #lines)
+    vim.list_extend(lines, self._collapsed and short_cont or full_cont)
 
-    -- TODO: make it possible to focus the window and when you focus it should
-    --       uncover the full content
-    -- WARN: technically it should check if collapsed but there is no such
-    --       feature now
-    if overflow then
+    if overflowed then
         local line_width = vim.fn.strdisplaywidth(lines[#lines])
         local prefix_width = math.max(1, self._maxContentWidth - line_width + self._paddingX - 3)
-        lines[#lines] = lines[#lines] .. string.rep(" ", prefix_width) .. "  "
+        local suffix = self._collapsed and "  " or "  "
+        lines[#lines] = lines[#lines] .. string.rep(" ", prefix_width) .. suffix
     end
 
     if #lines == 0 then
         lines = { "" }
     end
 
-    self._height = math.min(#lines, self._maxContentHeight)
+    self._height = self._collapsed and math.min(#lines, self._maxContentHeight) or #lines
 
     if not u.isEmptyStr(title) then
         local title_len = math.min(#title, #raw_title)

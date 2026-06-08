@@ -1,7 +1,8 @@
 local namespace = vim.api.nvim_create_namespace("notifications.balloon")
 
 ---@class BalloonListener
----@field onClosed fun(balloon: Balloon)
+---@field onClosed? fun(balloon: Balloon)
+---@field onContentUpdated? fun(balloon: Balloon)
 
 ---@class BalloonBounds
 ---@field row integer
@@ -31,6 +32,9 @@ local namespace = vim.api.nvim_create_namespace("notifications.balloon")
 ---@field protected _statuscolumn string
 ---@field private _isVisible boolean
 ---@field private _border? any[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"
+---@field protected _collapsed boolean
+---@field private _winenter_autocmd? integer
+---@field private _content? BalloonContent
 local Balloon = {}
 Balloon.__index = Balloon
 
@@ -60,6 +64,7 @@ function Balloon.new() ---@return Balloon balloon
             { "▕", "NotificationFloatBorderOuter" },
             { "▕", "NotificationFloatBorderOuter" },
         },
+        _collapsed = true,
     } --[[@as Balloon]], Balloon)
     return self
 end
@@ -113,7 +118,6 @@ end
 function Balloon:setBounds(bounds) ---@return Balloon balloon
     self._bounds = bounds
     self:setWidth(bounds.width)
-    self:setMaxHeight(bounds.height)
     self:_updatePosition(bounds)
     return self
 end
@@ -135,6 +139,7 @@ function Balloon:_updatePosition(bounds) ---@return nil void
         relative = "editor",
         row = self._position.row,
         col = self._position.col,
+        height = self._height,
     })
 end
 
@@ -148,6 +153,11 @@ function Balloon:dispose() ---@return nil void
     end
 
     self._isDisposed = true
+
+    if self._winenter_autocmd then
+        pcall(vim.api.nvim_del_autocmd, self._winenter_autocmd)
+        self._winenter_autocmd = nil
+    end
 
     for _, listener in ipairs(self._listeners) do
         if type(listener.onClosed) == "function" then
@@ -201,12 +211,13 @@ function Balloon:show(bounds)
         style = "",
         border = self._border,
         zindex = 50,
-        -- TODO: make it focusable later when decided on what it should do
+        -- It should be focusable so we can copy the content, uncover full content (if collapsed), close
         focusable = true,
     })
 
     self:_configureWindow()
     self:_setWindowVariables()
+    self:_setupWinEnterAutocmd()
 end
 
 ---@private
@@ -249,6 +260,25 @@ function Balloon:_setWindowVariables() ---@return nil void
 end
 
 ---@private
+function Balloon:_setupWinEnterAutocmd()
+    if self._winenter_autocmd then
+        pcall(vim.api.nvim_del_autocmd, self._winenter_autocmd)
+    end
+    self._winenter_autocmd = vim.api.nvim_create_autocmd({ "WinEnter", "WinLeave" }, {
+        callback = function(e)
+            if self._window and vim.api.nvim_get_current_win() == self._window then
+                if e.event == "WinEnter" then
+                    self._collapsed = false
+                else
+                    self._collapsed = true
+                end
+                self:_updateBuffer()
+            end
+        end,
+    })
+end
+
+---@private
 function Balloon:_buildBufferStart() ---@return integer booffer
     local buffer = vim.api.nvim_create_buf(false, true)
 
@@ -268,8 +298,7 @@ function Balloon:_buildBufferEnd(buffer) ---@return nil void
         return
     end
 
-    -- Set the buffer to be modifiable so that content can be added
-    vim.bo[buffer].modifiable = true
+    vim.bo[buffer].modifiable = false
 end
 
 ---@private
@@ -280,10 +309,25 @@ function Balloon:_buildContent(buffer, content) ---@return nil void
         return
     end
     content = content or self:_doBuildContent()
+
+    if self._content and vim.deep_equal(self._content, content) then
+        return
+    end
+
+    -- we need this to ensure we can set a new content but will switch to false later
+    vim.bo[buffer].modifiable = true
     vim.api.nvim_buf_set_lines(buffer, 0, -1, false, content.lines)
     for _, mark in ipairs(content.extramarks or {}) do
         vim.api.nvim_buf_set_extmark(buffer, namespace, mark.line, mark.col, mark.opts)
     end
+    if self._content then
+        for _, listener in ipairs(self._listeners) do
+            if type(listener.onContentUpdated) == "function" then
+                listener.onContentUpdated(self)
+            end
+        end
+    end
+    self._content = content
 end
 
 ---@private
@@ -292,20 +336,29 @@ function Balloon:_doBuildContent() ---@return BalloonContent
 end
 
 ---@protected
-function Balloon:_buildBuffer() ---@return integer buffer
-    local buffer = self:_buildBufferStart()
-    self:_buildContent(buffer)
-    self:_buildBufferEnd(buffer)
-    return buffer
+function Balloon:_updateBuffer() ---@return boolean
+    if self._buffer == nil or not vim.api.nvim_buf_is_valid(self._buffer) then
+        return false
+    end
+
+    self:_buildContent(self._buffer)
+    self:_buildBufferEnd(self._buffer)
+
+    return true
 end
 
 ---@protected
-function Balloon:_createBuffer() ---@return nil void
+function Balloon:_createBuffer() ---@return boolean
     if self._buffer ~= nil then
-        return
+        return false
     end
 
-    self._buffer = self:_buildBuffer()
+    local buffer = self:_buildBufferStart()
+    self:_buildContent(buffer)
+    self:_buildBufferEnd(buffer)
+    self._buffer = buffer
+
+    return true
 end
 
 local borders_padding = {

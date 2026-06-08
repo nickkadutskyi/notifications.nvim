@@ -102,14 +102,15 @@ end
 ---@param max_width integer
 ---@param max_lines integer
 ---@param suffix string|boolean|nil
----@return string[] linses wrapped text split into lines
+---@return string[] truncated wrapped text split into lines (limited to max_lines)
+---@return string[] full all wrapped lines without max_lines limit
 ---@return boolean overflowed whether the text was truncated due to max_lines limit
 function M.wrap(text, max_width, max_lines, suffix)
     if type(text) ~= "string" or max_lines <= 0 then
-        return {}, false
+        return {}, {}, false
     end
     if text == "" then
-        return { "" }, false
+        return { "" }, { "" }, false
     end
 
     if suffix == nil or suffix == true then
@@ -121,6 +122,8 @@ function M.wrap(text, max_width, max_lines, suffix)
     end
 
     local lines = {}
+    local full_lines = {}
+    local overflowed = false
 
     local function overflow()
         if #lines > 0 then
@@ -141,9 +144,14 @@ function M.wrap(text, max_width, max_lines, suffix)
     end
 
     local function push(line)
+        table.insert(full_lines, line)
+        if overflowed then
+            return true
+        end
         if #lines >= max_lines then
             overflow()
-            return false
+            overflowed = true
+            return true
         end
         table.insert(lines, line)
         return true
@@ -180,9 +188,7 @@ function M.wrap(text, max_width, max_lines, suffix)
         local current = ""
 
         if paragraph == "" then
-            if not push("") then
-                return lines, true
-            end
+            push("")
         else
             for word in paragraph:gmatch("%S+") do
                 for _, part in ipairs(splitLongWord(word)) do
@@ -190,21 +196,19 @@ function M.wrap(text, max_width, max_lines, suffix)
                     if vim.fn.strdisplaywidth(candidate) <= max_width then
                         current = candidate
                     else
-                        if not push(current) then
-                            return lines, true
-                        end
+                        push(current)
                         current = part
                     end
                 end
             end
 
-            if current ~= "" and not push(current) then
-                return lines, true
+            if current ~= "" then
+                push(current)
             end
         end
     end
 
-    return lines, false
+    return lines, full_lines, overflowed
 end
 
 function M.instanceof(obj, class)
