@@ -3,6 +3,7 @@ local namespace = vim.api.nvim_create_namespace("notifications.balloon")
 ---@class BalloonListener
 ---@field onClosed? fun(balloon: Balloon)
 ---@field onContentUpdated? fun(balloon: Balloon)
+---@field onWinLeave? fun(balloon: Balloon)
 
 ---@class BalloonBounds
 ---@field row integer
@@ -153,8 +154,16 @@ function Balloon:_updatePosition(bounds) ---@return nil void
     })
 end
 
-function Balloon:hide() ---@return nil void
-    self:dispose()
+function Balloon:hideNowOrWhenCollapsed() ---@return nil void
+    if self:isCollapsed() then
+        self:dispose()
+    else
+        self:addListener({
+            onWinLeave = function()
+                self:dispose()
+            end,
+        })
+    end
 end
 
 function Balloon:dispose() ---@return nil void
@@ -281,6 +290,11 @@ function Balloon:_setupWinEnterAutocmd()
                     self._collapsed = false
                 else
                     self._collapsed = true
+                    for _, listener in ipairs(self._listeners) do
+                        if type(listener.onWinLeave) == "function" then
+                            listener.onWinLeave(self)
+                        end
+                    end
                 end
                 self:_updateBuffer()
             end

@@ -144,7 +144,7 @@ function NotificationManager:notifyByBalloon(notification, displayType)
 
             vim.defer_fn(function()
                 if not balloon:isDisposed() then
-                    balloon:hide()
+                    balloon:hideNowOrWhenCollapsed()
                 end
             end, delay)
         end

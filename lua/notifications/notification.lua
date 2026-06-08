@@ -172,7 +172,7 @@ end
 function Notification:doHideBalloon(balloon)
     if balloon ~= nil then
         utils.invokeLater(function()
-            balloon:hide()
+            balloon:hideNowOrWhenCollapsed()
         end)
     end
 end

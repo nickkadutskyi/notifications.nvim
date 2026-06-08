@@ -156,7 +156,7 @@ function BalloonLayout:_remove(balloonOrNotification, hide)
             end
         end
         if hide == true then
-            balloon:hide()
+            balloon:hideNowOrWhenCollapsed()
         end
     end
 end
