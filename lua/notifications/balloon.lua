@@ -32,10 +32,11 @@ local namespace = vim.api.nvim_create_namespace("notifications.balloon")
 ---@field protected _isDisposed boolean
 ---@field protected _statuscolumn string
 ---@field private _isVisible boolean
----@field private _border? any[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"
+---@field protected _border? any[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"
 ---@field protected _collapsed boolean
 ---@field private _winenter_autocmd? integer
 ---@field private _content? BalloonContent
+---@field protected _winhighlight string
 local Balloon = {}
 Balloon.__index = Balloon
 
@@ -66,6 +67,7 @@ function Balloon.new() ---@return Balloon balloon
             { "▕", "NotificationFloatBorderOuter" },
         },
         _collapsed = true,
+        _winhighlight = "Normal:NotificationFloatNormal",
     } --[[@as Balloon]], Balloon)
     return self
 end
@@ -261,7 +263,7 @@ function Balloon:_configureWindow()
         list = false,
         listchars = "",
         showbreak = "",
-        winhighlight = "Normal:NotificationFloatNormal",
+        winhighlight = self._winhighlight,
     }
 
     for name, value in pairs(options) do
@@ -384,6 +386,11 @@ function Balloon:_createBuffer() ---@return boolean
     self:_setupKeymaps(buffer)
 
     return true
+end
+
+---@public
+function Balloon:buildBuffer() ---@return boolean
+    return self:_createBuffer() or self:_updateBuffer()
 end
 
 ---@private

@@ -1,6 +1,7 @@
 local u = require("notifications.utils")
 
 local NotificationBalloon = require("notifications.notification_balloon")
+local CollapseInfoBalloon = require("notifications.collapse_info_balloon")
 local Notification = require("notifications.notification")
 
 ---@class BalloonLayoutClass
@@ -11,7 +12,7 @@ local BalloonLayoutClass = {}
 ---@field private _visibleCount integer
 ---@field private _balloonWidth integer
 ---@field private _balloons NotificationBalloon[]
----@field private _collapsedBalloons NotificationBalloon[]
+---@field private _collapsedInfoBalloon CollapseInfoBalloon|nil
 local BalloonLayout = { class = BalloonLayoutClass }
 BalloonLayout.__index = BalloonLayout
 
@@ -21,14 +22,14 @@ BalloonLayoutClass.metatable = BalloonLayout
 
 ---@public
 ---@return BalloonLayout
-function BalloonLayoutClass:new()
+function BalloonLayoutClass.new()
     ---@diagnostic disable-next-line: redefined-local
     local self = setmetatable({
         -- TODO: make it configurable
         _visibleCount = 3,
         _balloonWidth = 58,
         _balloons = {},
-        _collapsedBalloons = {},
+        _collapsedInfoBalloon = nil,
     }, BalloonLayout)
     return self
 end
@@ -53,6 +54,10 @@ function BalloonLayout:_calculateSize()
         balloon:setWidth(self._balloonWidth)
         balloon:buildBuffer()
     end
+    if self._collapsedInfoBalloon then
+        self._collapsedInfoBalloon:setWidth(self._balloonWidth)
+        self._collapsedInfoBalloon:buildBuffer()
+    end
 end
 
 ---@private
@@ -62,9 +67,16 @@ function BalloonLayout:_relayout()
     -- we are considering cmdheight config and expecting that statusline
     -- awlays takes 1 row
     local bottom_margin = 2 + vim.o.cmdheight
+
+    local balloons = {}
+    if self._collapsedInfoBalloon then
+        table.insert(balloons, self._collapsedInfoBalloon)
+        bottom_margin = bottom_margin - 1
+    end
+
     local bottomRow = vim.o.lines - bottom_margin
 
-    self:_setBounds(self._balloons, startCol, bottomRow)
+    self:_setBounds(vim.list_extend(balloons, self._balloons), startCol, bottomRow)
 end
 
 ---@private
@@ -94,7 +106,7 @@ function BalloonLayout:_setBounds(balloons, startCol, bottomRow)
             col = startCol - balloon:getWidth(),
             row = bottomRow - vertical_offset - height,
         }
-        vertical_offset = vertical_offset + bounds.height + spacing
+        vertical_offset = vertical_offset + bounds.height + (u.is_a(balloon, CollapseInfoBalloon) and 0 or spacing)
         balloon:setBounds(bounds)
     end
 end
@@ -109,6 +121,9 @@ function BalloonLayout:_addNewBalloon(balloon)
     balloon:addListener({
         onClosed = function()
             self:_remove(balloon, false)
+            if #self._balloons == 0 and self._collapsedInfoBalloon then
+                self._collapsedInfoBalloon:dispose()
+            end
             u.invokeLater(function()
                 self:_relayout()
             end)
@@ -131,7 +146,24 @@ end
 
 ---@private
 ---@param balloon NotificationBalloon
-function BalloonLayout:_doCollapse(balloon) end
+function BalloonLayout:_doCollapse(balloon)
+    local oldBalloon = self._balloons[1]
+    self:_remove(oldBalloon, true)
+    if self._collapsedInfoBalloon == nil then
+        self._collapsedInfoBalloon = CollapseInfoBalloon.new()
+        self._collapsedInfoBalloon:addListener({
+            onClosed = function()
+                self._collapsedInfoBalloon = nil
+                u.invokeLater(function()
+                    self:_relayout()
+                end)
+            end,
+        })
+    end
+    self._collapsedInfoBalloon:increment()
+    self:_addNewBalloon(balloon)
+    self._collapsedInfoBalloon:show()
+end
 
 ---@public
 ---@param balloonOrNotification NotificationBalloon|Notification
@@ -140,7 +172,6 @@ function BalloonLayout:_remove(balloonOrNotification, hide)
     ---@type NotificationBalloon|nil
     local balloon
     if u.is_a(balloonOrNotification, Notification.metatable) then
-        -- it's a notification, try to get balloon from it
         balloon = balloonOrNotification:getBalloon()
         if balloon == nil then
             return
@@ -148,7 +179,6 @@ function BalloonLayout:_remove(balloonOrNotification, hide)
     end
     if u.is_a(balloonOrNotification, NotificationBalloon) then
         balloon = balloonOrNotification --[[@as NotificationBalloon]]
-        -- it's a balloon, do nothing
         for i, b in ipairs(self._balloons) do
             if b == balloon then
                 table.remove(self._balloons, i)

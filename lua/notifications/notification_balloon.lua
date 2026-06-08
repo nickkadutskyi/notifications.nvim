@@ -100,11 +100,6 @@ function NotificationBalloon:_resolveIconHighlight()
     end
 end
 
----@public
-function NotificationBalloon:buildBuffer() ---@return boolean
-    return self:_createBuffer() or self:_updateBuffer()
-end
-
 ---@private
 function NotificationBalloon:_setWindowVariables()
     if self._window == nil or not vim.api.nvim_win_is_valid(self._window) then
