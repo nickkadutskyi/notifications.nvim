@@ -147,7 +147,8 @@ end
 ---@private
 ---@param balloon NotificationBalloon
 function BalloonLayout:_doCollapse(balloon)
-    local oldBalloon = self._balloons[1]
+    -- Select next balloon if the most oldest one is focused
+    local oldBalloon = self._balloons[1]:isCollapsed() and self._balloons[1] or self._balloons[2]
     self:_remove(oldBalloon, true)
     if self._collapsedInfoBalloon == nil then
         self._collapsedInfoBalloon = CollapseInfoBalloon.new()
