@@ -74,13 +74,26 @@ end
 function BalloonLayout:_setBounds(balloons, startCol, bottomRow)
     local vertical_offset = 0
     local spacing = 1
+
+    local extra_space = bottomRow
     for _, balloon in ipairs(balloons) do
+        extra_space = extra_space - (math.min(balloon:getMaxHeight(), balloon:getHeight()) + spacing)
+    end
+
+    for _, balloon in ipairs(balloons) do
+        local height
+        if balloon:isCollapsed() then
+            height = (balloon:getHeight() or 1)
+        else
+            print("hello: " .. vim.inspect(extra_space))
+            height = (math.min(extra_space + balloon:getMaxHeight(), balloon:getHeight()) or 1)
+        end
         ---@type BalloonBounds
         local bounds = {
             width = balloon:getWidth(),
-            height = balloon:getHeight() or 1,
+            height = height,
             col = startCol - balloon:getWidth(),
-            row = bottomRow - vertical_offset - (balloon:getHeight() or 1),
+            row = bottomRow - vertical_offset - height,
         }
         vertical_offset = vertical_offset + bounds.height + spacing
         balloon:setBounds(bounds)

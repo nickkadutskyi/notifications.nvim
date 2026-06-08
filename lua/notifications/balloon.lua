@@ -88,8 +88,17 @@ function Balloon:setMaxHeight(height) ---@return Balloon balloon
     return self
 end
 
+function Balloon:getMaxHeight() ---@return integer
+    return self._maxContentHeight + self:_getBorderVerticalPadding()
+end
+
 function Balloon:getHeight() ---@return integer|nil
     return self._height ~= nil and (self._height + self:_getBorderVerticalPadding()) or nil
+end
+
+function Balloon:setHeight(height) ---@return Balloon balloon
+    self._height = height - self:_getBorderVerticalPadding()
+    return self
 end
 
 ---@param width integer
@@ -118,6 +127,7 @@ end
 function Balloon:setBounds(bounds) ---@return Balloon balloon
     self._bounds = bounds
     self:setWidth(bounds.width)
+    self:setHeight(bounds.height)
     self:_updatePosition(bounds)
     return self
 end
@@ -417,6 +427,10 @@ function Balloon:_getBorderVerticalPadding() ---@return integer
     end
 
     return 0
+end
+
+function Balloon:isCollapsed() ---@return boolean
+    return self._collapsed
 end
 
 return Balloon
