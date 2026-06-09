@@ -32,6 +32,7 @@ n/a
     - [ ] When focused show notification's group somewhere
     - [ ] Decide if I need to keep the balloon if I interacted with it
     - [ ] Better navigation from code to notification balloon and between balloons
+    - [ ] Integrate with webdev-icons plugin for better icon coloring
 - [ ] Notification Actions
     - [ ] Dismiss notification action ("Don't show again", "Don't show again for this project") and restore if needed
     - [ ] Custom actions
