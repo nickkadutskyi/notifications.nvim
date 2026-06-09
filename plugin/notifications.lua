@@ -5,6 +5,14 @@ require("notifications.notifications_manager")
 
 local notifications = require("notifications")
 
+vim.api.nvim_create_user_command("NotificationsTestInt", function()
+    notifications.notify(
+        "Help us improve the AWS CloudFormation Language Server by sharing anonymous telemetry data with AWS. You can change this preference at any time in CloudFormation Settings.",
+        vim.log.levels.INFO,
+        { title = "AWS CloudFormation Language Server" }
+    )
+end, {})
+
 vim.api.nvim_create_user_command("NotificationsTestShort", function()
     notifications.notify("This is a short notification.", vim.log.levels.INFO, { title = "Short Title" })
 end, {})
@@ -122,17 +130,47 @@ end, {})
 
 vim.api.nvim_create_user_command("NotificationsTestVaried", function()
     local n = notifications.notify
-    local function d(fn, ms) vim.defer_fn(fn, ms) end
-    d(function() n("Short", vim.log.levels.INFO, { title = "T" }) end, 0)
-    d(function() n("Medium content here.", vim.log.levels.WARN, { title = "Medium Title", subtitle = "Sub" }) end, 1200)
-    d(function() n(string.rep("Long content ", 10), vim.log.levels.ERROR, { title = string.rep("L", 50), subtitle = string.rep("S", 30) }) end, 2400)
-    d(function() n("No title", vim.log.levels.DEBUG) end, 3600)
-    d(function() n("Only subtitle", vim.log.levels.INFO, { subtitle = "Sub only" }) end, 4800)
-    d(function() n(string.rep("Overflow content line ", 20), vim.log.levels.WARN, { title = "Overflow" }) end, 6000)
-    d(function() n(string.rep("Even longer overflow ", 30), vim.log.levels.INFO) end, 7200)
-    d(function() n("Very long title test", vim.log.levels.TRACE, { title = "This title is extremely long and will truncate" }) end, 8400)
-    d(function() n("Short", vim.log.levels.OFF, { title = "T", subtitle = "S" }) end, 9600)
-    d(function() n(string.rep("x", 100), vim.log.levels.INFO, { title = "C" }) end, 10800)
-    d(function() n("Content only no title sub", vim.log.levels.WARN) end, 12000)
-    d(function() n("Mixed", vim.log.levels.ERROR, { title = "Title", subtitle = "Subtitle longish" }) end, 13200)
+    local function d(fn, ms)
+        vim.defer_fn(fn, ms)
+    end
+    d(function()
+        n("Short", vim.log.levels.INFO, { title = "T" })
+    end, 0)
+    d(function()
+        n("Medium content here.", vim.log.levels.WARN, { title = "Medium Title", subtitle = "Sub" })
+    end, 1200)
+    d(function()
+        n(
+            string.rep("Long content ", 10),
+            vim.log.levels.ERROR,
+            { title = string.rep("L", 50), subtitle = string.rep("S", 30) }
+        )
+    end, 2400)
+    d(function()
+        n("No title", vim.log.levels.DEBUG)
+    end, 3600)
+    d(function()
+        n("Only subtitle", vim.log.levels.INFO, { subtitle = "Sub only" })
+    end, 4800)
+    d(function()
+        n(string.rep("Overflow content line ", 20), vim.log.levels.WARN, { title = "Overflow" })
+    end, 6000)
+    d(function()
+        n(string.rep("Even longer overflow ", 30), vim.log.levels.INFO)
+    end, 7200)
+    d(function()
+        n("Very long title test", vim.log.levels.TRACE, { title = "This title is extremely long and will truncate" })
+    end, 8400)
+    d(function()
+        n("Short", vim.log.levels.OFF, { title = "T", subtitle = "S" })
+    end, 9600)
+    d(function()
+        n(string.rep("x", 100), vim.log.levels.INFO, { title = "C" })
+    end, 10800)
+    d(function()
+        n("Content only no title sub", vim.log.levels.WARN)
+    end, 12000)
+    d(function()
+        n("Mixed", vim.log.levels.ERROR, { title = "Title", subtitle = "Subtitle longish" })
+    end, 13200)
 end, {})

@@ -51,7 +51,7 @@ function Balloon.new() ---@return Balloon balloon
         _height = nil,
         _maxContentWidth = 44,
         _maxContentHeight = 4,
-        _paddingX = 4,
+        _paddingX = 5,
         _listeners = {},
         _isDisposed = false,
         _statuscolumn = "%!v:lua.require'notifications.balloon'.statuscolumn()",

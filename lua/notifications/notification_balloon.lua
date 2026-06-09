@@ -46,10 +46,10 @@ function NotificationBalloon.statuscolumn()
     local width = vim.fn.strdisplaywidth(icon)
     -- ensure the icon has at least 2 width to let icon render larger
     if width < 2 then
-        icon = icon .. string.rep(" ", 2 - width)
+        icon = icon .. string.rep(" ", 3 - width)
     end
 
-    icon = string.rep(" ", padding - 2) .. icon
+    icon = string.rep(" ", padding - 3) .. icon
 
     local highlight = vim.w[win].notifications_balloon_icon_highlight
     if type(highlight) == "string" and highlight ~= "" then
