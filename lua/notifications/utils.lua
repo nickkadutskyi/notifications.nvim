@@ -67,7 +67,7 @@ end
 
 ---@param text string
 ---@param max_width integer
----@param suffix string|nil|boolean
+---@param suffix? string|boolean
 ---@return string
 function M.truncate(text, max_width, suffix)
     if type(text) ~= "string" or text == "" then
