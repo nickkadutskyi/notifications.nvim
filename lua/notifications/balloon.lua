@@ -33,6 +33,8 @@ local namespace = vim.api.nvim_create_namespace("notifications.balloon")
 ---@field protected _statuscolumn string
 ---@field private _isVisible boolean
 ---@field protected _border? any[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"
+---@field private _borderVerticalPadding? integer
+---@field private _borderVerticalPaddingBorder? any[]|string
 ---@field protected _collapsed boolean
 ---@field private _winenter_autocmd? integer
 ---@field private _winclosed_autocmd? integer
@@ -68,6 +70,8 @@ function Balloon.new() ---@return Balloon balloon
             { "▕", "NotificationFloatBorderOuter" },
             { "▕", "NotificationFloatBorderOuter" },
         },
+        _borderVerticalPadding = nil,
+        _borderVerticalPaddingBorder = nil,
         _collapsed = true,
         _winhighlight = "Normal:NotificationFloatNormal",
     } --[[@as Balloon]], Balloon)
@@ -85,6 +89,14 @@ end
 
 function Balloon:isVisible() ---@return boolean
     return self._isVisible
+end
+
+---@param border any[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"|nil
+function Balloon:setBorder(border) ---@return Balloon balloon
+    self._border = border
+    self._borderVerticalPadding = nil
+    self._borderVerticalPaddingBorder = nil
+    return self
 end
 
 ---@param height integer
@@ -496,6 +508,11 @@ local borders_padding = {
 ---@private
 function Balloon:_getBorderVerticalPadding() ---@return integer
     local border = self._border or vim.o.winborder
+    if self._borderVerticalPadding ~= nil and self._borderVerticalPaddingBorder == border then
+        return self._borderVerticalPadding
+    end
+
+    local padding = 0
 
     if type(border) == "table" then
         local top_border, bottom_border = "", ""
@@ -509,7 +526,10 @@ function Balloon:_getBorderVerticalPadding() ---@return integer
             bottom_border = type(border[6]) == "table" and (border[6][1] or "") or border[6]
         end
 
-        return (top_border ~= "" and 1 or 0) + (bottom_border ~= "" and 1 or 0)
+        padding = (top_border ~= "" and 1 or 0) + (bottom_border ~= "" and 1 or 0)
+        self._borderVerticalPadding = padding
+        self._borderVerticalPaddingBorder = border
+        return padding
     end
 
     if type(border) == "string" then
@@ -522,10 +542,12 @@ function Balloon:_getBorderVerticalPadding() ---@return integer
     end
 
     if borders_padding[border] ~= nil then
-        return borders_padding[border]
+        padding = borders_padding[border]
     end
 
-    return 0
+    self._borderVerticalPadding = padding
+    self._borderVerticalPaddingBorder = border
+    return padding
 end
 
 function Balloon:isCollapsed() ---@return boolean

@@ -14,7 +14,7 @@ function CollapseInfoBalloon.new() ---@return CollapseInfoBalloon
     local self = setmetatable(Balloon.new(), CollapseInfoBalloon) --[[@as CollapseInfoBalloon]]
     self._statuscolumn = string.rep(" ", self._paddingX)
     self._count = 0
-    self._border = {
+    self:setBorder({
         { "▕", "NotificationFloatBorderOuter" }, -- Top Left corner
         { "", "NotificationFloatBorderOuter" }, -- Title border
         { "▏", "NotificationFloatBorderOuter" }, -- Top Right corner
@@ -24,7 +24,7 @@ function CollapseInfoBalloon.new() ---@return CollapseInfoBalloon
         { "▔", "NotificationFloatBorderOuter" }, -- Footer border
         { " ", "NotificationFloatBorderOuter" },
         { "▕", "NotificationFloatBorderOuter" },
-    }
+    })
     self._winhighlight = "Normal:NotificationFloatCollapseInfoNormal"
     self._height = 1
     self._maxContentHeight = 1
