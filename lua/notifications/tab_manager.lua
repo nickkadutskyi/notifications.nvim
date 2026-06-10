@@ -34,10 +34,18 @@ function TabManager:_addTabpageListener() ---@return nil void
 
     vim.api.nvim_create_autocmd("TabClosed", {
         group = group,
-        callback = function()
-            local tab_id = vim.api.nvim_get_current_tabpage()
+        callback = function(args)
+            local tab_id = tonumber(args.file)
+            if tab_id == nil then
+                return
+            end
+
             local layout = self._tabIdToLayout[tab_id]
-            --- TODO: properly dispose the layout and its balloons
+
+            if layout ~= nil then
+                layout:dispose()
+            end
+
             self._tabIdToLayout[tab_id] = nil
         end,
     })

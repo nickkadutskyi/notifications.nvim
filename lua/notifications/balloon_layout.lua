@@ -10,6 +10,7 @@ local Notification = require("notifications.notification")
 ---@field private _balloons NotificationBalloon[]
 ---@field private _collapsedInfoBalloon CollapseInfoBalloon|nil
 ---@field private _queueRelayout DebouncedFunction
+---@field private _isDisposed boolean
 local BalloonLayout = {}
 BalloonLayout.__index = BalloonLayout
 
@@ -26,6 +27,7 @@ function BalloonLayout.new()
         _balloonWidth = 56,
         _balloons = {},
         _collapsedInfoBalloon = nil,
+        _isDisposed = false,
     }, BalloonLayout)
 
     self._queueRelayout = u.debounce(RELAYOUT_DEBOUNCE_MS, function()
@@ -44,6 +46,11 @@ end
 
 ---@param newBalloon NotificationBalloon
 function BalloonLayout:add(newBalloon)
+    if self._isDisposed then
+        newBalloon:dispose()
+        return
+    end
+
     if #self._balloons < self._visibleCount then
         self:_addNewBalloon(newBalloon)
     else
@@ -52,7 +59,33 @@ function BalloonLayout:add(newBalloon)
 end
 
 function BalloonLayout:queueRelayout()
+    if self._isDisposed then
+        return
+    end
+
     self._queueRelayout()
+end
+
+function BalloonLayout:dispose()
+    if self._isDisposed then
+        return
+    end
+
+    self._isDisposed = true
+    self._queueRelayout.close()
+
+    local balloons = self._balloons
+    local collapsedInfoBalloon = self._collapsedInfoBalloon
+    self._balloons = {}
+    self._collapsedInfoBalloon = nil
+
+    for _, balloon in ipairs(balloons) do
+        balloon:dispose()
+    end
+
+    if collapsedInfoBalloon ~= nil then
+        collapsedInfoBalloon:dispose()
+    end
 end
 
 ---@private

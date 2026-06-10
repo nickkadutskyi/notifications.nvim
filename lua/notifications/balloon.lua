@@ -35,6 +35,8 @@ local namespace = vim.api.nvim_create_namespace("notifications.balloon")
 ---@field protected _border? any[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"
 ---@field protected _collapsed boolean
 ---@field private _winenter_autocmd? integer
+---@field private _winclosed_autocmd? integer
+---@field private _bufwipeout_autocmd? integer
 ---@field private _content? BalloonContent
 ---@field protected _winhighlight string
 local Balloon = {}
@@ -180,6 +182,16 @@ function Balloon:dispose() ---@return nil void
         self._winenter_autocmd = nil
     end
 
+    if self._winclosed_autocmd then
+        pcall(vim.api.nvim_del_autocmd, self._winclosed_autocmd)
+        self._winclosed_autocmd = nil
+    end
+
+    if self._bufwipeout_autocmd then
+        pcall(vim.api.nvim_del_autocmd, self._bufwipeout_autocmd)
+        self._bufwipeout_autocmd = nil
+    end
+
     for _, listener in ipairs(self._listeners) do
         if type(listener.onClosed) == "function" then
             listener.onClosed(self)
@@ -187,14 +199,16 @@ function Balloon:dispose() ---@return nil void
     end
     self._listeners = {}
 
-    if self._window ~= nil and vim.api.nvim_win_is_valid(self._window) then
-        vim.api.nvim_win_close(self._window, true)
-        self._window = nil
+    local window = self._window
+    self._window = nil
+    if window ~= nil and vim.api.nvim_win_is_valid(window) then
+        vim.api.nvim_win_close(window, true)
     end
 
-    if self._buffer ~= nil and vim.api.nvim_buf_is_valid(self._buffer) then
-        vim.api.nvim_buf_delete(self._buffer, { force = true })
-        self._buffer = nil
+    local buffer = self._buffer
+    self._buffer = nil
+    if buffer ~= nil and vim.api.nvim_buf_is_valid(buffer) then
+        vim.api.nvim_buf_delete(buffer, { force = true })
     end
 
     self._bounds = nil
@@ -250,6 +264,7 @@ function Balloon:show(bounds)
 
     self:_configureWindow()
     self:_setWindowVariables()
+    self:_setupWinClosedAutocmd()
     self:_setupWinEnterAutocmd()
 end
 
@@ -312,6 +327,56 @@ function Balloon:_setupWinEnterAutocmd()
                 end
                 self:_updateBuffer()
             end
+        end,
+    })
+end
+
+---@private
+function Balloon:_setupWinClosedAutocmd()
+    if self._winclosed_autocmd then
+        pcall(vim.api.nvim_del_autocmd, self._winclosed_autocmd)
+        self._winclosed_autocmd = nil
+    end
+
+    if self._window == nil or not vim.api.nvim_win_is_valid(self._window) then
+        return
+    end
+
+    local window = self._window
+    self._winclosed_autocmd = vim.api.nvim_create_autocmd("WinClosed", {
+        pattern = tostring(window),
+        once = true,
+        callback = function()
+            self._winclosed_autocmd = nil
+            if self._window == window then
+                self._window = nil
+            end
+            self:dispose()
+        end,
+    })
+end
+
+---@private
+---@param buffer integer
+function Balloon:_setupBufWipeoutAutocmd(buffer)
+    if self._bufwipeout_autocmd then
+        pcall(vim.api.nvim_del_autocmd, self._bufwipeout_autocmd)
+        self._bufwipeout_autocmd = nil
+    end
+
+    if buffer == nil or not vim.api.nvim_buf_is_valid(buffer) then
+        return
+    end
+
+    self._bufwipeout_autocmd = vim.api.nvim_create_autocmd("BufWipeout", {
+        buffer = buffer,
+        once = true,
+        callback = function()
+            self._bufwipeout_autocmd = nil
+            if self._buffer == buffer then
+                self._buffer = nil
+            end
+            self:dispose()
         end,
     })
 end
@@ -396,6 +461,7 @@ function Balloon:_createBuffer() ---@return boolean
     self:_buildBufferEnd(buffer)
     self._buffer = buffer
     self:_setupKeymaps(buffer)
+    self:_setupBufWipeoutAutocmd(buffer)
 
     return true
 end
