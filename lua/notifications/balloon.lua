@@ -206,7 +206,7 @@ function Balloon:addListener(listener) ---@return nil void
     table.insert(self._listeners, listener)
 end
 
----@param bounds BalloonBounds|nil
+---@param bounds? BalloonBounds|nil
 function Balloon:show(bounds)
     assert(self._isDisposed == false, "Balloon is already disposed")
 
