@@ -128,6 +128,12 @@ vim.api.nvim_create_user_command("NotificationsTestDelay", function()
     )
 end, {})
 
+vim.api.nvim_create_user_command("NotificationsTestBulk1000", function()
+    for i = 1, 10000 do
+        notifications.notify("Bulk perf test #" .. i, vim.log.levels.INFO, { title = "Perf #" .. i })
+    end
+end, {})
+
 vim.api.nvim_create_user_command("NotificationsTestVaried", function()
     local n = notifications.notify
     local function d(fn, ms)

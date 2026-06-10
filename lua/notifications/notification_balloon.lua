@@ -179,4 +179,9 @@ function NotificationBalloon:_doBuildContent() ---@return BalloonContent
     return { lines = lines, extramarks = extramarks }
 end
 
+---@protected
+function NotificationBalloon:_onAfterDispose()
+    self._notification = nil
+end
+
 return NotificationBalloon

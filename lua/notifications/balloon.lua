@@ -185,6 +185,7 @@ function Balloon:dispose() ---@return nil void
             listener.onClosed(self)
         end
     end
+    self._listeners = {}
 
     if self._window ~= nil and vim.api.nvim_win_is_valid(self._window) then
         vim.api.nvim_win_close(self._window, true)
@@ -195,6 +196,17 @@ function Balloon:dispose() ---@return nil void
         vim.api.nvim_buf_delete(self._buffer, { force = true })
         self._buffer = nil
     end
+
+    self._bounds = nil
+    self._position = nil
+    self._content = nil
+
+    self:_onAfterDispose()
+end
+
+---@protected
+function Balloon:_onAfterDispose() ---@return nil void
+    -- This method can be overridden by subclasses to perform additional cleanup after disposal
 end
 
 function Balloon:isDisposed() ---@return boolean

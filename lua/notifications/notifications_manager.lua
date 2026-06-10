@@ -134,11 +134,21 @@ function NotificationManager:_notifyByBalloon(notification, displayType) ---@ret
         if not balloon:isDisposed() then
             local delay = displayType == NotificationDisplayType.STICKY_BALLOON and 300000 or 10000
 
-            vim.defer_fn(function()
+            local timer = vim.defer_fn(function()
                 if not balloon:isDisposed() then
                     balloon:hideNowOrWhenCollapsed()
                 end
             end, delay)
+
+            -- Clear the timer if the balloon is closed before the delay
+            balloon:addListener({
+                onClosed = function()
+                    if timer and not timer:is_closing() then
+                        timer:stop()
+                        timer:close()
+                    end
+                end,
+            })
         end
     end)
 
