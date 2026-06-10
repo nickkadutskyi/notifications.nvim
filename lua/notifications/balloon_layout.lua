@@ -9,8 +9,11 @@ local Notification = require("notifications.notification")
 ---@field private _balloonWidth integer
 ---@field private _balloons NotificationBalloon[]
 ---@field private _collapsedInfoBalloon CollapseInfoBalloon|nil
+---@field private _queueRelayout DebouncedFunction
 local BalloonLayout = {}
 BalloonLayout.__index = BalloonLayout
+
+local RELAYOUT_DEBOUNCE_MS = 50
 
 --- CONSTRUCTORS ---------------------------------------------------------------
 
@@ -24,6 +27,14 @@ function BalloonLayout.new()
         _balloons = {},
         _collapsedInfoBalloon = nil,
     }, BalloonLayout)
+
+    self._queueRelayout = u.debounce(RELAYOUT_DEBOUNCE_MS, function()
+        ---@diagnostic disable-next-line: invisible
+        self:_calculateSize()
+        ---@diagnostic disable-next-line: invisible
+        self:_relayout()
+    end)
+
     return self
 end
 
@@ -38,6 +49,10 @@ function BalloonLayout:add(newBalloon)
     else
         self:_doCollapse(newBalloon)
     end
+end
+
+function BalloonLayout:queueRelayout()
+    self._queueRelayout()
 end
 
 ---@private
@@ -116,16 +131,10 @@ function BalloonLayout:_addNewBalloon(balloon)
             if #self._balloons == 0 and self._collapsedInfoBalloon then
                 self._collapsedInfoBalloon:dispose()
             end
-            u.invokeLater(function()
-                self:_calculateSize()
-                self:_relayout()
-            end)
+            self:queueRelayout()
         end,
         onContentUpdated = function()
-            u.invokeLater(function()
-                self:_calculateSize()
-                self:_relayout()
-            end)
+            self:queueRelayout()
         end,
     })
 
@@ -148,9 +157,7 @@ function BalloonLayout:_doCollapse(balloon)
         self._collapsedInfoBalloon:addListener({
             onClosed = function()
                 self._collapsedInfoBalloon = nil
-                u.invokeLater(function()
-                    self:_relayout()
-                end)
+                self:queueRelayout()
             end,
         })
     end

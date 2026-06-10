@@ -238,6 +238,66 @@ function M.instanceof(obj, class)
     return false
 end
 
+---@class DebouncedFunction
+---@field cancel fun()
+---@field close fun()
+
+-- Debounce function to limit the rate at which a function can fire.
+---@param ms integer
+---@param fn fun(...)
+---@return DebouncedFunction
+function M.debounce(ms, fn)
+    local timer = assert(vim.uv.new_timer())
+    local argv = nil
+    local pending = false
+    local closed = false
+    local unpack_args = unpack or table.unpack
+    local wrapped = vim.schedule_wrap(function()
+        if closed or not pending then
+            argv = nil
+            return
+        end
+
+        local args = argv
+        argv = nil
+        pending = false
+        fn(unpack_args(args or {}))
+    end)
+
+    local debounced = {}
+
+    function debounced.cancel()
+        argv = nil
+        pending = false
+        if not timer:is_closing() then
+            timer:stop()
+        end
+    end
+
+    function debounced.close()
+        argv = nil
+        pending = false
+        closed = true
+        if not timer:is_closing() then
+            timer:stop()
+            timer:close()
+        end
+    end
+
+    return setmetatable(debounced, {
+        __call = function(_, ...)
+            if closed or timer:is_closing() then
+                return
+            end
+
+            argv = { ... }
+            pending = true
+            timer:stop()
+            timer:start(ms, 0, wrapped)
+        end,
+    })
+end
+
 M.is_a = M.instanceof
 
 return M

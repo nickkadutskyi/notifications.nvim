@@ -13,7 +13,7 @@ local NotificationGroupManager = {}
 NotificationGroupManager.__index = NotificationGroupManager
 
 function NotificationGroupManager.new() ---@return NotificationGroupManager
-    self = setmetatable({
+    local self = setmetatable({
         _registeredGroups = {},
     }, NotificationGroupManager)
 
