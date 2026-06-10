@@ -7,29 +7,22 @@ local NotificationDisplayType = require("notifications.notification_display_type
 ---@field displayName string|nil
 ---@field pluginId string|nil
 
----@class NotificationGroupManagerClass
----@field metatable NotificationGroupManager Metatable for NotificationGroupManager instances. Use with `getmetatable(obj) == NotificationGroupManager.metatable`.
-local NotificationGroupManagerClass = {}
-
 ---@class NotificationGroupManager
 ---@field private _registeredGroups table<string, NotificationGroup>
-local NotificationGroupManager = { class = NotificationGroupManagerClass }
+local NotificationGroupManager = {}
 NotificationGroupManager.__index = NotificationGroupManager
 
-NotificationGroupManagerClass.metatable = NotificationGroupManager
-
----@return NotificationGroupManager
-function NotificationGroupManagerClass:new()
+function NotificationGroupManager.new() ---@return NotificationGroupManager
     self = setmetatable({
         _registeredGroups = {},
     }, NotificationGroupManager)
 
     ---@diagnostic disable-next-line: invisible
-    self:addPluginListener()
+    self:_addPluginListener()
     ---@diagnostic disable-next-line: invisible
-    self._registeredGroups = self:computeGroups()
+    self._registeredGroups = self:_computeGroups()
     ---@diagnostic disable-next-line: invisible
-    self:registerNotificationGroup(
+    self:_registerNotificationGroup(
         {
             id = "default",
             displayType = NotificationDisplayType.BALLOON,
@@ -40,7 +33,7 @@ function NotificationGroupManagerClass:new()
         self._registeredGroups
     )
     ---@diagnostic disable-next-line: invisible
-    self:registerNotificationGroup(
+    self:_registerNotificationGroup(
         {
             id = "default-sticky",
             displayType = NotificationDisplayType.STICKY_BALLOON,
@@ -56,28 +49,23 @@ end
 
 --- INSTNACE METHODS -----------------------------------------------------------
 
----@public
 ---@param groupId string
----@return boolean
-function NotificationGroupManager:isGroupRegistered(groupId)
+function NotificationGroupManager:isGroupRegistered(groupId) ---@return boolean
     return self._registeredGroups[groupId] ~= nil
 end
 
----@public
 ---@param groupId string
----@return NotificationGroup|nil
-function NotificationGroupManager:getNotificationGroup(groupId)
+function NotificationGroupManager:getNotificationGroup(groupId) ---@return NotificationGroup|nil
     return self._registeredGroups[groupId]
 end
 
 ---@private
----@return table<string, NotificationGroup>
-function NotificationGroupManager:computeGroups()
+function NotificationGroupManager:_computeGroups() ---@return table<string, NotificationGroup>
     ---@type table<string, NotificationGroup>
     local result = {}
 
-    self:processWithPlugins(function(plugin)
-        self:registerNotificationGroup(plugin, result)
+    self:_processWithPlugins(function(plugin)
+        self:_registerNotificationGroup(plugin, result)
     end)
 
     return result
@@ -86,7 +74,7 @@ end
 ---@private
 ---@param plugin NotificationGroupPluginConfig
 ---@param registeredGroups table<string, NotificationGroup>
-function NotificationGroupManager:registerNotificationGroup(plugin, registeredGroups)
+function NotificationGroupManager:_registerNotificationGroup(plugin, registeredGroups) ---@return nil void
     local groupId = plugin.id
 
     if groupId == nil or registeredGroups[groupId] then
@@ -96,30 +84,30 @@ function NotificationGroupManager:registerNotificationGroup(plugin, registeredGr
     local displayType = plugin.displayType
     local title = plugin.displayName
 
-    local notificationGroup = NotificationGroup:new(groupId, displayType, title, plugin.pluginId)
+    local notificationGroup = NotificationGroup.new(groupId, displayType, title, plugin.pluginId)
     registeredGroups[groupId] = notificationGroup
 end
 
 ---@private
 ---@param callback fun(plugin: NotificationGroupPluginConfig)
-function NotificationGroupManager:processWithPlugins(callback)
-    self:processPluginPaths(vim.api.nvim_get_runtime_file("lua/", true), function(plugin)
+function NotificationGroupManager:_processWithPlugins(callback) ---@return nil void
+    self:_processPluginPaths(vim.api.nvim_get_runtime_file("lua/", true), function(plugin)
         callback(plugin)
     end)
-    self:processPluginPaths(vim.fn.getscriptinfo(), function(plugin)
+    self:_processPluginPaths(vim.fn.getscriptinfo(), function(plugin)
         callback(plugin)
     end)
 end
 
 ---@private
-function NotificationGroupManager:addPluginListener()
+function NotificationGroupManager:_addPluginListener() ---@return nil void
     local group = vim.api.nvim_create_augroup("NotificationsGroupManager", { clear = true })
 
     vim.api.nvim_create_autocmd("SourcePost", {
         group = group,
         callback = function(args)
-            self:processPluginPaths({ args.file }, function(plugin)
-                self:registerNotificationGroup(plugin, self._registeredGroups)
+            self:_processPluginPaths({ args.file }, function(plugin)
+                self:_registerNotificationGroup(plugin, self._registeredGroups)
             end)
         end,
     })
@@ -130,8 +118,8 @@ function NotificationGroupManager:addPluginListener()
             -- Traverse runtimepath and re-register all plugins,
             -- this is needed to support plugins being added/removed from runtimepath at runtime
             local paths = vim.api.nvim_get_runtime_file("lua/", true)
-            self:processPluginPaths(paths, function(plugin)
-                self:registerNotificationGroup(plugin, self._registeredGroups)
+            self:_processPluginPaths(paths, function(plugin)
+                self:_registerNotificationGroup(plugin, self._registeredGroups)
             end)
         end,
     })
@@ -140,7 +128,7 @@ end
 ---@private
 ---@param paths string[]|{name:string}[]
 ---@param callback fun(plugin: NotificationGroupPluginConfig)
-function NotificationGroupManager:processPluginPaths(paths, callback)
+function NotificationGroupManager:_processPluginPaths(paths, callback) ---@return nil void
     vim.iter(paths)
         :map(function(path)
             if type(path) == "table" then
@@ -193,5 +181,5 @@ function NotificationGroupManager:processPluginPaths(paths, callback)
 end
 
 --- Since it is creating autocmds we make it a singleton to avoid multiple unhandled autocmds
-local manager = NotificationGroupManagerClass:new()
+local manager = NotificationGroupManager.new()
 return manager

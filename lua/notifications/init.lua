@@ -33,7 +33,7 @@ function M.notify(msg, level, opts)
     assert(type(M.level_names[level]) == "string", "Invalid log level: " .. tostring(level))
 
     require("notifications.notification")
-        :new(opts.group or "default", opts.title or "", msg or "", level)
+        .new(opts.group or "default", opts.title or "", msg or "", level)
         :setSubtitle(opts.subtitle)
         :setIcon(opts.icon)
         -- trigger notification

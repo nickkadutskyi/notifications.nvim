@@ -4,7 +4,7 @@ local DisplayType = require("notifications.notification_display_type")
 
 describe("NotificationGroup", function()
     it("constructs with provided fields", function()
-        local g = NotificationGroup:new("mygroup", DisplayType.BALLOON, "My Group", "my-plugin")
+        local g = NotificationGroup.new("mygroup", DisplayType.BALLOON, "My Group", "my-plugin")
 
         assert.are.equal("mygroup", g.id)
         assert.are.equal(DisplayType.BALLOON, g.displayType)
@@ -13,7 +13,7 @@ describe("NotificationGroup", function()
     end)
 
     it("accepts nil for optional fields", function()
-        local g = NotificationGroup:new("id", DisplayType.STICKY_BALLOON)
+        local g = NotificationGroup.new("id", DisplayType.STICKY_BALLOON)
         assert.are.equal("id", g.id)
         assert.is_nil(g.pluginId)
     end)

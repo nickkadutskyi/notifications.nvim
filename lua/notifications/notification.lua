@@ -3,10 +3,6 @@ local utils = require("notifications.utils")
 --- Increasing counter for unique notification IDs within the session.
 local next_id = 0
 
----@class NotificationClass
----@field metatable Notification Metatable for Notification instances. Use with `getmetatable(obj) == Notification.metatable`.
-local NotificationClass = {}
-
 ---@class Notification
 ---@field public id integer
 ---@field private _groupId string
@@ -18,10 +14,8 @@ local NotificationClass = {}
 ---@field private _icon string|nil
 ---@field private _balloon NotificationBalloon|nil
 ---@field private _expired boolean
-local Notification = { class = NotificationClass }
+local Notification = {}
 Notification.__index = Notification
-
-NotificationClass.metatable = Notification
 
 --- CONSTRUCTOR ----------------------------------------------------------------
 
@@ -30,9 +24,9 @@ NotificationClass.metatable = Notification
 ---@param content string
 ---@param level vim.log.levels
 ---@return Notification
----@overload fun(self: NotificationClass, groupId: string, content: string, level: vim.log.levels): Notification
----@overload fun(self: NotificationClass, groupId: string, content: string): Notification
-function NotificationClass:new(groupId, title, content, level)
+---@overload fun(self: Notification, groupId: string, content: string, level: vim.log.levels): Notification
+---@overload fun(self: Notification, groupId: string, content: string): Notification
+function Notification.new(groupId, title, content, level)
     -- Handle new(groupId, content) → title becomes ""
     if type(title) == "string" and content == nil then
         content = title
@@ -243,4 +237,4 @@ function Notification:__eq(other)
         and self._icon == other._icon
 end
 
-return NotificationClass
+return Notification

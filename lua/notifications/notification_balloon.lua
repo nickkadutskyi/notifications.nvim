@@ -26,7 +26,6 @@ end
 
 --- Based on window-scoped variables sets an icon in statuscolumn on the first
 --- normal line
----@public
 function NotificationBalloon.statuscolumn()
     local win = vim.g.statusline_winid
     local padding = (vim.w[win].balloon_padding ~= nil and vim.w[win].balloon_padding or 2)

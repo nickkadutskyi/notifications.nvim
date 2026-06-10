@@ -4,25 +4,18 @@ local NotificationBalloon = require("notifications.notification_balloon")
 local CollapseInfoBalloon = require("notifications.collapse_info_balloon")
 local Notification = require("notifications.notification")
 
----@class BalloonLayoutClass
----@field public metatable BalloonLayout metatable for BalloonLayout instances. Use with `getmetatable(obj) == BalloonLayout.metatable`.
-local BalloonLayoutClass = {}
-
 ---@class BalloonLayout
 ---@field private _visibleCount integer
 ---@field private _balloonWidth integer
 ---@field private _balloons NotificationBalloon[]
 ---@field private _collapsedInfoBalloon CollapseInfoBalloon|nil
-local BalloonLayout = { class = BalloonLayoutClass }
+local BalloonLayout = {}
 BalloonLayout.__index = BalloonLayout
-
-BalloonLayoutClass.metatable = BalloonLayout
 
 --- CONSTRUCTORS ---------------------------------------------------------------
 
----@public
 ---@return BalloonLayout
-function BalloonLayoutClass.new()
+function BalloonLayout.new()
     ---@diagnostic disable-next-line: redefined-local
     local self = setmetatable({
         -- TODO: make it configurable
@@ -38,7 +31,6 @@ end
 
 --- INSTANCE METHODS -----------------------------------------------------------
 
----@public
 ---@param newBalloon NotificationBalloon
 function BalloonLayout:add(newBalloon)
     if #self._balloons < self._visibleCount then
@@ -167,13 +159,13 @@ function BalloonLayout:_doCollapse(balloon)
     self._collapsedInfoBalloon:show()
 end
 
----@public
+---@private
 ---@param balloonOrNotification NotificationBalloon|Notification
 ---@param hide boolean|nil
 function BalloonLayout:_remove(balloonOrNotification, hide)
     ---@type NotificationBalloon|nil
     local balloon
-    if u.is_a(balloonOrNotification, Notification.metatable) then
+    if u.is_a(balloonOrNotification, Notification) then
         balloon = balloonOrNotification:getBalloon()
         if balloon == nil then
             return
@@ -193,4 +185,4 @@ function BalloonLayout:_remove(balloonOrNotification, hide)
     end
 end
 
-return BalloonLayoutClass
+return BalloonLayout

@@ -1,19 +1,13 @@
----@class NotificationSettingsClass
----@field metatable NotificationSettings Metatable for NotificationSettings instances. Use with `getmetatable(obj) == NotificationSettings.metatable`.
-local NotificationSettingsClass = {}
-
 ---@class NotificationSettings
 ---@field groupId string
 ---@field displayType NotificationDisplayType
-local NotificationSettings = { class = NotificationSettingsClass }
+local NotificationSettings = {}
 NotificationSettings.__index = NotificationSettings
-
-NotificationSettingsClass.metatable = NotificationSettings
 
 ---@param groupId string
 ---@param displayType NotificationDisplayType
 ---@return NotificationSettings
-function NotificationSettingsClass:new(groupId, displayType)
+function NotificationSettings.new(groupId, displayType)
     ---@diagnostic disable-next-line: redefined-local
     local self = setmetatable({
         groupId = groupId,
@@ -50,4 +44,4 @@ function NotificationSettings:getDisplayType()
     return self.displayType
 end
 
-return NotificationSettingsClass
+return NotificationSettings

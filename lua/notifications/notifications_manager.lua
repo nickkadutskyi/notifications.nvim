@@ -3,21 +3,15 @@ local utils = require("notifications.utils")
 local NotificationDisplayType = require("notifications.notification_display_type")
 local NotificationBalloon = require("notifications.notification_balloon")
 
----@class NotificationManagerClass
----@field public metatable NotificationManager Metatable for NotificationManager instances. Use with `getmetatable(obj) == NotificationManager.metatable`.
-local NotificationManagerClass = {}
-
 ---@class NotificationManager
 ---@field private _isFocused boolean
 ---@field private _focusListeners fun()[]
-local NotificationManager = { class = NotificationManagerClass }
+local NotificationManager = {}
 NotificationManager.__index = NotificationManager
-
-NotificationManagerClass.metatable = NotificationManager
 
 --- CONSTRUCTOR ----------------------------------------------------------------
 
-function NotificationManagerClass:new()
+function NotificationManager.new()
     ---@diagnostic disable-next-line: redefined-local
     local self = setmetatable({
         _isFocused = true,
@@ -25,7 +19,7 @@ function NotificationManagerClass:new()
     }, NotificationManager)
 
     ---@diagnostic disable-next-line: invisible
-    self:addFocusListeners()
+    self:_addFocusListeners()
 
     return self
 end
@@ -35,7 +29,7 @@ end
 --- INSTANCE METHODS -----------------------------------------------------------
 
 ---@private
-function NotificationManager:addFocusListeners()
+function NotificationManager:_addFocusListeners()
     local group = vim.api.nvim_create_augroup("notifications_focus_tracking", { clear = true })
 
     vim.api.nvim_create_autocmd("FocusGained", {
@@ -77,14 +71,13 @@ function NotificationManager:showNotification(notification)
     end
 
     utils.invokeLater(function()
-        self:doShowNotification(notification)
+        self:_doShowNotification(notification)
     end)
 end
 
 ---@private
 ---@param notification Notification
----@return nil
-function NotificationManager:doShowNotification(notification)
+function NotificationManager:_doShowNotification(notification) ---@return nil void
     ---@type string
     local groupId = notification:getGroupId()
     local conf = require("notifications.config")
@@ -96,7 +89,7 @@ function NotificationManager:doShowNotification(notification)
     elseif displayType == NotificationDisplayType.TOOL_WINDOW_BALLOON then
         -- Do nothing because not implemented TODO: maybe log if logging turned on
     elseif displayType == NotificationDisplayType.BALLOON or displayType == NotificationDisplayType.STICKY_BALLOON then
-        local balloon = self:notifyByBalloon(notification, displayType)
+        local balloon = self:_notifyByBalloon(notification, displayType)
         -- NOTE: Currently we alway expire notification when balloon closes
         --       but when we'll add tool bar with timeline (history) we will
         --       check whether the notification is logged into the timeline
@@ -118,8 +111,7 @@ end
 ---@private
 ---@param notification Notification
 ---@param displayType NotificationDisplayType
----@return NotificationBalloon|nil
-function NotificationManager:notifyByBalloon(notification, displayType)
+function NotificationManager:_notifyByBalloon(notification, displayType) ---@return NotificationBalloon|nil
     local layout = require("notifications.tab_manager"):getCurrentTabLayout()
     if layout == nil then
         return
@@ -156,7 +148,7 @@ end
 
 ---@param balloon NotificationBalloon
 ---@param callback fun()
-function NotificationManager:frameActivateBalloonListener(balloon, callback)
+function NotificationManager:frameActivateBalloonListener(balloon, callback) ---@return nil void
     if self._isFocused then
         callback()
     else
@@ -176,5 +168,5 @@ function NotificationManager:frameActivateBalloonListener(balloon, callback)
     end
 end
 
-local manager = NotificationManagerClass:new()
+local manager = NotificationManager.new()
 return manager
