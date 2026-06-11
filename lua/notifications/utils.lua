@@ -12,6 +12,7 @@ local function reportErrors()
     end
     local errors = table.concat(invokationErrors, "\n")
     invokationErrors = {}
+    -- TODO: do logging like this https://github.com/stevearc/conform.nvim/blob/619363c30309d29ffa631e67c8183f2a72caa373/lua/conform/log.lua#L21
     -- TODO: log it somewhere since can't use vim.notify, maybe nvim_echo?
     -- vim.notify("Errors during notifications invokations:\n" .. errors, vim.log.levels.ERROR)
 end
