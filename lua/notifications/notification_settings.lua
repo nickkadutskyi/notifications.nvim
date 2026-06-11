@@ -1,12 +1,12 @@
----@class NotificationSettings
+---@class notifications.NotificationSettings
 ---@field groupId string
----@field displayType NotificationDisplayType
+---@field displayType notifications.NotificationDisplayType
 local NotificationSettings = {}
 NotificationSettings.__index = NotificationSettings
 
 ---@param groupId string
----@param displayType NotificationDisplayType
----@return NotificationSettings
+---@param displayType notifications.NotificationDisplayType
+---@return notifications.NotificationSettings
 function NotificationSettings.new(groupId, displayType)
     ---@diagnostic disable-next-line: redefined-local
     local self = setmetatable({
@@ -17,14 +17,14 @@ function NotificationSettings.new(groupId, displayType)
     return self
 end
 
----@param displayType NotificationDisplayType
----@return NotificationSettings
+---@param displayType notifications.NotificationDisplayType
+---@return notifications.NotificationSettings
 function NotificationSettings:withDisplayType(displayType)
     self.displayType = displayType
     return self
 end
 
----@param other NotificationSettings
+---@param other notifications.NotificationSettings
 ---@return boolean
 function NotificationSettings:__eq(other)
     if type(other) ~= "table" or getmetatable(other) ~= NotificationSettings then
@@ -39,7 +39,7 @@ function NotificationSettings:getGroupId()
     return self.groupId
 end
 
----@return NotificationDisplayType
+---@return notifications.NotificationDisplayType
 function NotificationSettings:getDisplayType()
     return self.displayType
 end

@@ -3,7 +3,7 @@ local utils = require("notifications.utils")
 local NotificationDisplayType = require("notifications.notification_display_type")
 local NotificationBalloon = require("notifications.notification_balloon")
 
----@class NotificationManager
+---@class notifications.NotificationManager
 ---@field private _isFocused boolean
 ---@field private _focusListeners fun()[]
 local NotificationManager = {}
@@ -51,7 +51,7 @@ function NotificationManager:_addFocusListeners()
     })
 end
 
----@param notification Notification
+---@param notification notifications.Notification
 function NotificationManager:showNotification(notification)
     notification:assertHasTitleOrContent()
 
@@ -76,7 +76,7 @@ function NotificationManager:showNotification(notification)
 end
 
 ---@private
----@param notification Notification
+---@param notification notifications.Notification
 function NotificationManager:_doShowNotification(notification) ---@return nil void
     ---@type string
     local groupId = notification:getGroupId()
@@ -109,9 +109,9 @@ function NotificationManager:_doShowNotification(notification) ---@return nil vo
 end
 
 ---@private
----@param notification Notification
----@param displayType NotificationDisplayType
-function NotificationManager:_notifyByBalloon(notification, displayType) ---@return NotificationBalloon|nil
+---@param notification notifications.Notification
+---@param displayType notifications.NotificationDisplayType
+function NotificationManager:_notifyByBalloon(notification, displayType) ---@return notifications.NotificationBalloon|nil
     local layout = require("notifications.tab_manager"):getCurrentTabLayout()
     if layout == nil then
         return
@@ -157,7 +157,7 @@ function NotificationManager:_notifyByBalloon(notification, displayType) ---@ret
     return balloon
 end
 
----@param balloon NotificationBalloon
+---@param balloon notifications.NotificationBalloon
 ---@param callback fun()
 function NotificationManager:frameActivateBalloonListener(balloon, callback) ---@return nil void
     if self._isFocused then

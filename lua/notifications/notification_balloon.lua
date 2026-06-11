@@ -2,19 +2,19 @@ local Balloon = require("notifications.balloon")
 
 local u = require("notifications.utils")
 
----@class NotificationBalloon: Balloon
+---@class notifications.NotificationBalloon: notifications.Balloon
 ---@field public id integer
 ---@field public groupId string
----@field private _notification Notification
+---@field private _notification notifications.Notification
 local NotificationBalloon = {}
 NotificationBalloon.__index = NotificationBalloon
 setmetatable(NotificationBalloon, Balloon)
 
 --- CONSTRUCTORS ---------------------------------------------------------------
 
----@param notification Notification
-function NotificationBalloon.new(notification) ---@return NotificationBalloon
-    local self = setmetatable(Balloon.new(), NotificationBalloon) --[[@as NotificationBalloon]]
+---@param notification notifications.Notification
+function NotificationBalloon.new(notification) ---@return notifications.NotificationBalloon
+    local self = setmetatable(Balloon.new(), NotificationBalloon) --[[@as notifications.NotificationBalloon]]
     self.id = notification.id
     self.groupId = notification:getGroupId()
     self._notification = notification
@@ -111,7 +111,7 @@ function NotificationBalloon:_setWindowVariables()
 end
 
 ---@private
-function NotificationBalloon:_doBuildContent() ---@return BalloonContent
+function NotificationBalloon:_doBuildContent() ---@return notifications.BalloonContent
     local raw_title = self._notification:getTitle()
     local raw_subtitle = self._notification:getSubtitle()
 

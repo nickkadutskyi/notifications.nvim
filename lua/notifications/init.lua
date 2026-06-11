@@ -1,6 +1,6 @@
 local M = {}
 
----@param opts NotificationUserOpts User config
+---@param opts notifications.UserOpts User config
 function M.setup(opts)
     opts = opts or {}
     assert(type(opts) == "table", "Expected options to be a table, got " .. type(opts))

@@ -1,14 +1,14 @@
 local NotificationGroup = require("notifications.notification_group")
 local NotificationDisplayType = require("notifications.notification_display_type")
 
----@class NotificationGroupPluginConfig
+---@class notifications.NotificationGroupPluginConfig
 ---@field id string
----@field displayType NotificationDisplayType
+---@field displayType notifications.NotificationDisplayType
 ---@field displayName string|nil
 ---@field pluginId string|nil
 
 ---@class NotificationGroupManager
----@field private _registeredGroups table<string, NotificationGroup>
+---@field private _registeredGroups table<string, notifications.NotificationGroup>
 local NotificationGroupManager = {}
 NotificationGroupManager.__index = NotificationGroupManager
 
@@ -55,13 +55,13 @@ function NotificationGroupManager:isGroupRegistered(groupId) ---@return boolean
 end
 
 ---@param groupId string
-function NotificationGroupManager:getNotificationGroup(groupId) ---@return NotificationGroup|nil
+function NotificationGroupManager:getNotificationGroup(groupId) ---@return notifications.NotificationGroup|nil
     return self._registeredGroups[groupId]
 end
 
 ---@private
-function NotificationGroupManager:_computeGroups() ---@return table<string, NotificationGroup>
-    ---@type table<string, NotificationGroup>
+function NotificationGroupManager:_computeGroups() ---@return table<string, notifications.NotificationGroup>
+    ---@type table<string, notifications.NotificationGroup>
     local result = {}
 
     self:_processWithPlugins(function(plugin)
@@ -72,8 +72,8 @@ function NotificationGroupManager:_computeGroups() ---@return table<string, Noti
 end
 
 ---@private
----@param plugin NotificationGroupPluginConfig
----@param registeredGroups table<string, NotificationGroup>
+---@param plugin notifications.NotificationGroupPluginConfig
+---@param registeredGroups table<string, notifications.NotificationGroup>
 function NotificationGroupManager:_registerNotificationGroup(plugin, registeredGroups) ---@return nil void
     local groupId = plugin.id
 
@@ -89,7 +89,7 @@ function NotificationGroupManager:_registerNotificationGroup(plugin, registeredG
 end
 
 ---@private
----@param callback fun(plugin: NotificationGroupPluginConfig)
+---@param callback fun(plugin: notifications.NotificationGroupPluginConfig)
 function NotificationGroupManager:_processWithPlugins(callback) ---@return nil void
     self:_processPluginPaths(vim.api.nvim_get_runtime_file("lua/", true), function(plugin)
         callback(plugin)
@@ -127,7 +127,7 @@ end
 
 ---@private
 ---@param paths string[]|{name:string}[]
----@param callback fun(plugin: NotificationGroupPluginConfig)
+---@param callback fun(plugin: notifications.NotificationGroupPluginConfig)
 function NotificationGroupManager:_processPluginPaths(paths, callback) ---@return nil void
     vim.iter(paths)
         :map(function(path)

@@ -4,12 +4,12 @@ local NotificationBalloon = require("notifications.notification_balloon")
 local CollapseInfoBalloon = require("notifications.collapse_info_balloon")
 local Notification = require("notifications.notification")
 
----@class BalloonLayout
+---@class notifications.BalloonLayout
 ---@field private _visibleCount integer
 ---@field private _balloonWidth integer
----@field private _balloons NotificationBalloon[]
----@field private _collapsedInfoBalloon CollapseInfoBalloon|nil
----@field private _queueRelayout DebouncedFunction
+---@field private _balloons notifications.NotificationBalloon[]
+---@field private _collapsedInfoBalloon notifications.CollapseInfoBalloon|nil
+---@field private _queueRelayout notifications.DebouncedFunction
 ---@field private _isDisposed boolean
 local BalloonLayout = {}
 BalloonLayout.__index = BalloonLayout
@@ -18,7 +18,7 @@ local RELAYOUT_DEBOUNCE_MS = 50
 
 --- CONSTRUCTORS ---------------------------------------------------------------
 
----@return BalloonLayout
+---@return notifications.BalloonLayout
 function BalloonLayout.new()
     ---@diagnostic disable-next-line: redefined-local
     local self = setmetatable({
@@ -43,7 +43,7 @@ end
 
 --- INSTANCE METHODS -----------------------------------------------------------
 
----@param newBalloon NotificationBalloon
+---@param newBalloon notifications.NotificationBalloon
 function BalloonLayout:add(newBalloon)
     if self._isDisposed then
         newBalloon:dispose()
@@ -119,7 +119,7 @@ function BalloonLayout:_relayout()
 end
 
 ---@private
----@param balloons NotificationBalloon[]
+---@param balloons notifications.NotificationBalloon[]
 ---@param startCol integer
 ---@param bottomRow integer
 function BalloonLayout:_setBounds(balloons, startCol, bottomRow)
@@ -138,7 +138,7 @@ function BalloonLayout:_setBounds(balloons, startCol, bottomRow)
         else
             height = (math.min(extra_space + balloon:getMaxHeight(), balloon:getHeight()) or 1)
         end
-        ---@type BalloonBounds
+        ---@type notifications.BalloonBounds
         local bounds = {
             width = balloon:getWidth(),
             height = height,
@@ -151,7 +151,7 @@ function BalloonLayout:_setBounds(balloons, startCol, bottomRow)
 end
 
 ---@private
----@param balloon NotificationBalloon
+---@param balloon notifications.NotificationBalloon
 function BalloonLayout:_addNewBalloon(balloon)
     assert(u.is_a(balloon, NotificationBalloon), "Expected a Balloon instance")
 
@@ -179,7 +179,7 @@ function BalloonLayout:_addNewBalloon(balloon)
 end
 
 ---@private
----@param balloon NotificationBalloon
+---@param balloon notifications.NotificationBalloon
 function BalloonLayout:_doCollapse(balloon)
     -- Select next balloon if the most oldest one is focused
     local oldBalloon = self._balloons[1]:isCollapsed() and self._balloons[1] or self._balloons[2]
@@ -199,10 +199,10 @@ function BalloonLayout:_doCollapse(balloon)
 end
 
 ---@private
----@param balloonOrNotification NotificationBalloon|Notification
+---@param balloonOrNotification notifications.NotificationBalloon|notifications.Notification
 ---@param hide boolean|nil
 function BalloonLayout:_remove(balloonOrNotification, hide)
-    ---@type NotificationBalloon|nil
+    ---@type notifications.NotificationBalloon|nil
     local balloon
     if u.is_a(balloonOrNotification, Notification) then
         balloon = balloonOrNotification:getBalloon()
@@ -211,7 +211,7 @@ function BalloonLayout:_remove(balloonOrNotification, hide)
         end
     end
     if u.is_a(balloonOrNotification, NotificationBalloon) then
-        balloon = balloonOrNotification --[[@as NotificationBalloon]]
+        balloon = balloonOrNotification --[[@as notifications.NotificationBalloon]]
         for i, b in ipairs(self._balloons) do
             if b == balloon then
                 table.remove(self._balloons, i)

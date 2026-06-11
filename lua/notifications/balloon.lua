@@ -1,34 +1,34 @@
 local namespace = vim.api.nvim_create_namespace("notifications.balloon")
 
----@class BalloonListener
----@field onClosed? fun(balloon: Balloon)
----@field onContentUpdated? fun(balloon: Balloon)
----@field onWinLeave? fun(balloon: Balloon)
+---@class notifications.BalloonListener
+---@field onClosed? fun(balloon: notifications.Balloon)
+---@field onContentUpdated? fun(balloon: notifications.Balloon)
+---@field onWinLeave? fun(balloon: notifications.Balloon)
 
----@class BalloonBounds
+---@class notifications.BalloonBounds
 ---@field row integer
 ---@field col integer
 ---@field width integer
 ---@field height integer
 
----@class BalloonPosition
+---@class notifications.BalloonPosition
 ---@field row integer
 ---@field col integer
 
----@class BalloonContent
+---@class notifications.BalloonContent
 ---@field lines string[]
 ---@field extramarks {line:integer, col: integer, opts:vim.api.keyset.set_extmark}[]
 
----@class Balloon
+---@class notifications.Balloon
 ---@field protected _buffer? integer
 ---@field protected _window? integer
----@field protected _bounds? BalloonBounds
----@field protected _position? BalloonPosition
+---@field protected _bounds? notifications.BalloonBounds
+---@field protected _position? notifications.BalloonPosition
 ---@field protected _height? integer
 ---@field protected _maxContentWidth integer
 ---@field protected _maxContentHeight integer
 ---@field protected _paddingX integer
----@field protected _listeners BalloonListener[]
+---@field protected _listeners notifications.BalloonListener[]
 ---@field protected _isDisposed boolean
 ---@field protected _statuscolumn string
 ---@field private _isVisible boolean
@@ -39,14 +39,14 @@ local namespace = vim.api.nvim_create_namespace("notifications.balloon")
 ---@field private _winenter_autocmd? integer
 ---@field private _winclosed_autocmd? integer
 ---@field private _bufwipeout_autocmd? integer
----@field private _content? BalloonContent
+---@field private _content? notifications.BalloonContent
 ---@field protected _winhighlight string
 local Balloon = {}
 Balloon.__index = Balloon
 
 --- CONSTRUCTORS ---------------------------------------------------------------
 
-function Balloon.new() ---@return Balloon balloon
+function Balloon.new() ---@return notifications.Balloon balloon
     local self = setmetatable({
         _buffer = nil,
         _window = nil,
@@ -74,7 +74,7 @@ function Balloon.new() ---@return Balloon balloon
         _borderVerticalPaddingBorder = nil,
         _collapsed = true,
         _winhighlight = "Normal:NotificationFloatNormal",
-    } --[[@as Balloon]], Balloon)
+    } --[[@as notifications.Balloon]], Balloon)
     return self
 end
 
@@ -92,7 +92,7 @@ function Balloon:isVisible() ---@return boolean
 end
 
 ---@param border any[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"|nil
-function Balloon:setBorder(border) ---@return Balloon balloon
+function Balloon:setBorder(border) ---@return notifications.Balloon balloon
     self._border = border
     self._borderVerticalPadding = nil
     self._borderVerticalPaddingBorder = nil
@@ -100,7 +100,7 @@ function Balloon:setBorder(border) ---@return Balloon balloon
 end
 
 ---@param height integer
-function Balloon:setMaxHeight(height) ---@return Balloon balloon
+function Balloon:setMaxHeight(height) ---@return notifications.Balloon balloon
     self._maxContentHeight = height - self:_getBorderVerticalPadding()
     return self
 end
@@ -113,13 +113,13 @@ function Balloon:getHeight() ---@return integer|nil
     return self._height ~= nil and (self._height + self:_getBorderVerticalPadding()) or nil
 end
 
-function Balloon:setHeight(height) ---@return Balloon balloon
+function Balloon:setHeight(height) ---@return notifications.Balloon balloon
     self._height = height - self:_getBorderVerticalPadding()
     return self
 end
 
 ---@param width integer
-function Balloon:setWidth(width) ---@return Balloon balloon
+function Balloon:setWidth(width) ---@return notifications.Balloon balloon
     self._maxContentWidth = width
         -- subtracting right padding
         - self._paddingX
@@ -140,8 +140,8 @@ function Balloon:getWidth() ---@return integer
         + 2
 end
 
----@param bounds BalloonBounds
-function Balloon:setBounds(bounds) ---@return Balloon balloon
+---@param bounds notifications.BalloonBounds
+function Balloon:setBounds(bounds) ---@return notifications.Balloon balloon
     self._bounds = bounds
     self:setWidth(bounds.width)
     self:setHeight(bounds.height)
@@ -150,7 +150,7 @@ function Balloon:setBounds(bounds) ---@return Balloon balloon
 end
 
 ---@private
----@param bounds BalloonBounds
+---@param bounds notifications.BalloonBounds
 function Balloon:_updatePosition(bounds) ---@return nil void
     self._position = {
         row = bounds.row,
@@ -239,12 +239,12 @@ function Balloon:isDisposed() ---@return boolean
     return self._isDisposed
 end
 
----@param listener BalloonListener
+---@param listener notifications.BalloonListener
 function Balloon:addListener(listener) ---@return nil void
     table.insert(self._listeners, listener)
 end
 
----@param bounds? BalloonBounds|nil
+---@param bounds? notifications.BalloonBounds|nil
 function Balloon:show(bounds)
     assert(self._isDisposed == false, "Balloon is already disposed")
 
@@ -418,7 +418,7 @@ end
 
 ---@private
 ---@param buffer integer
----@param content BalloonContent|nil
+---@param content notifications.BalloonContent|nil
 function Balloon:_buildContent(buffer, content) ---@return nil void
     if buffer == nil or not vim.api.nvim_buf_is_valid(buffer) then
         return
@@ -446,7 +446,7 @@ function Balloon:_buildContent(buffer, content) ---@return nil void
 end
 
 ---@private
-function Balloon:_doBuildContent() ---@return BalloonContent
+function Balloon:_doBuildContent() ---@return notifications.BalloonContent
     return { lines = {}, extramarks = {} }
 end
 

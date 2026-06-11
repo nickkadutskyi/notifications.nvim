@@ -1,13 +1,13 @@
----@class NotificationGroup
+---@class notifications.NotificationGroup
 ---@field id string
----@field displayType NotificationDisplayType
+---@field displayType notifications.NotificationDisplayType
 ---@field title string|nil
 ---@field pluginId string|nil
 local NotificationGroup = {}
 NotificationGroup.__index = NotificationGroup
 
 ---@param id string
----@param displayType NotificationDisplayType
+---@param displayType notifications.NotificationDisplayType
 ---@param title string|nil
 ---@param pluginId string|nil
 function NotificationGroup.new(id, displayType, title, pluginId)
@@ -19,7 +19,7 @@ function NotificationGroup.new(id, displayType, title, pluginId)
     }, NotificationGroup)
 end
 
----@return NotificationDisplayType
+---@return notifications.NotificationDisplayType
 function NotificationGroup:getDisplayType()
     return self.displayType
 end

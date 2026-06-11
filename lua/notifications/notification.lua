@@ -3,7 +3,7 @@ local utils = require("notifications.utils")
 --- Increasing counter for unique notification IDs within the session.
 local next_id = 0
 
----@class Notification
+---@class notifications.Notification
 ---@field public id integer
 ---@field private _groupId string
 ---@field private _title string
@@ -12,7 +12,7 @@ local next_id = 0
 ---@field private _level integer
 ---@field private _timestamp integer Time (in seconds since Jan 1, 1970) when notification was created.
 ---@field private _icon string|nil
----@field private _balloon NotificationBalloon|nil
+---@field private _balloon notifications.NotificationBalloon|nil
 ---@field private _expired boolean
 local Notification = {}
 Notification.__index = Notification
@@ -23,9 +23,9 @@ Notification.__index = Notification
 ---@param title string And optional title, use empty string ("") to display the content without a title
 ---@param content string
 ---@param level vim.log.levels
----@return Notification
----@overload fun(self: Notification, groupId: string, content: string, level: vim.log.levels): Notification
----@overload fun(self: Notification, groupId: string, content: string): Notification
+---@return notifications.Notification
+---@overload fun(self: notifications.Notification, groupId: string, content: string, level: vim.log.levels): notifications.Notification
+---@overload fun(self: notifications.Notification, groupId: string, content: string): notifications.Notification
 function Notification.new(groupId, title, content, level)
     -- Handle new(groupId, content) → title becomes ""
     if type(title) == "string" and content == nil then
@@ -73,8 +73,8 @@ function Notification:getTitle()
 end
 
 ---@param title string
----@return Notification
----@overload fun(self: Notification, title: string, subtitle: string|nil): Notification
+---@return notifications.Notification
+---@overload fun(self: notifications.Notification, title: string, subtitle: string|nil): notifications.Notification
 function Notification:setTitle(title, subtitle)
     self._title = title or ""
     if subtitle ~= nil then
@@ -90,7 +90,7 @@ function Notification:getSubtitle()
 end
 
 ---@param subtitle string
----@return Notification
+---@return notifications.Notification
 function Notification:setSubtitle(subtitle)
     self._subtitle = subtitle
     return self
@@ -107,7 +107,7 @@ function Notification:getContent()
 end
 
 ---@param content string
----@return Notification
+---@return notifications.Notification
 function Notification:setContent(content)
     self._content = content or ""
     return self
@@ -124,14 +124,14 @@ function Notification:getIcon()
 end
 
 ---@param icon string|nil
----@return Notification
+---@return notifications.Notification
 function Notification:setIcon(icon)
     self._icon = icon
     return self
 end
 
 ---@public
----@param balloon NotificationBalloon
+---@param balloon notifications.NotificationBalloon
 ---@return nil
 function Notification:setBalloon(balloon)
     local old_balloon = self._balloon
@@ -148,13 +148,13 @@ function Notification:setBalloon(balloon)
     })
 end
 
----@return NotificationBalloon|nil
+---@return notifications.NotificationBalloon|nil
 function Notification:getBalloon()
     return self._balloon
 end
 
 ---@public
----@overload fun(self: Notification): nil
+---@overload fun(self: notifications.Notification): nil
 function Notification:hideBalloon()
     local balloon = self._balloon
     self._balloon = nil
@@ -162,7 +162,7 @@ function Notification:hideBalloon()
 end
 
 ---@private
----@param balloon NotificationBalloon|nil
+---@param balloon notifications.NotificationBalloon|nil
 function Notification:doHideBalloon(balloon)
     if balloon ~= nil then
         utils.invokeLater(function()
@@ -221,7 +221,7 @@ function Notification:__tostring()
     )
 end
 
----@param other Notification
+---@param other notifications.Notification
 ---@return boolean
 function Notification:__eq(other)
     if type(other) ~= "table" or getmetatable(other) ~= Notification then

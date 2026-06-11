@@ -1,8 +1,6 @@
 local Balloon = require("notifications.balloon")
 
-local u = require("notifications.utils")
-
----@class CollapseInfoBalloon: Balloon
+---@class notifications.CollapseInfoBalloon: notifications.Balloon
 ---@field private _count integer
 local CollapseInfoBalloon = {}
 CollapseInfoBalloon.__index = CollapseInfoBalloon
@@ -10,8 +8,8 @@ setmetatable(CollapseInfoBalloon, Balloon)
 
 --- CONSTRUCTORS ---------------------------------------------------------------
 
-function CollapseInfoBalloon.new() ---@return CollapseInfoBalloon
-    local self = setmetatable(Balloon.new(), CollapseInfoBalloon) --[[@as CollapseInfoBalloon]]
+function CollapseInfoBalloon.new() ---@return notifications.CollapseInfoBalloon
+    local self = setmetatable(Balloon.new(), CollapseInfoBalloon) --[[@as notifications.CollapseInfoBalloon]]
     self._statuscolumn = string.rep(" ", self._paddingX)
     self._count = 0
     self:setBorder({

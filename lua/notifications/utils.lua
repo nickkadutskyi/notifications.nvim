@@ -239,14 +239,14 @@ function M.instanceof(obj, class)
     return false
 end
 
----@class DebouncedFunction
+---@class notifications.DebouncedFunction
 ---@field cancel fun()
 ---@field close fun()
 
 -- Debounce function to limit the rate at which a function can fire.
 ---@param ms integer
 ---@param fn fun(...)
----@return DebouncedFunction
+---@return notifications.DebouncedFunction
 function M.debounce(ms, fn)
     local timer = assert(vim.uv.new_timer())
     local argv = nil

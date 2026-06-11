@@ -1,7 +1,7 @@
 local BalloonLayout = require("notifications.balloon_layout")
 
 ---@class TabManager
----@field private _tabIdToLayout table<integer, BalloonLayout>
+---@field private _tabIdToLayout table<integer, notifications.BalloonLayout>
 local TabManager = {}
 TabManager.__index = TabManager
 
@@ -51,7 +51,7 @@ function TabManager:_addTabpageListener() ---@return nil void
     })
 end
 
-function TabManager:getCurrentTabLayout() ---@return BalloonLayout|nil
+function TabManager:getCurrentTabLayout() ---@return notifications.BalloonLayout|nil
     local tab_id = vim.api.nvim_get_current_tabpage()
     return self._tabIdToLayout[tab_id]
 end

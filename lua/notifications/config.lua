@@ -3,39 +3,39 @@ local u = require("notifications.utils")
 local NotificationSettings = require("notifications.notification_settings")
 local NotificationDisplayType = require("notifications.notification_display_type")
 
----@class NotificationUserOpts
+---@class notifications.UserOpts
 ---@field display_balloon_notifications boolean|nil
 ---@field balloon_notifications_visible_count integer|nil
----@field by_group table<string, {popup_type: NotificationDisplayType}>
+---@field by_group table<string, {popup_type: notifications.NotificationDisplayType}>
 
----@class NotificationsConfgiuration
+---@class notifications.Confgiuration
 ---@field public SHOW_BALLOONS boolean
 ---@field public BALLOONS_VISIBLE_COUNT integer
----@field private _idToSettingsMap table<string, NotificationSettings>
-local NotificationsConfgiuration = {}
-NotificationsConfgiuration.__index = NotificationsConfgiuration
+---@field private _idToSettingsMap table<string, notifications.NotificationSettings>
+local Confgiuration = {}
+Confgiuration.__index = Confgiuration
 
 --- CONSTRUCTORS ---------------------------------------------------------------
 
-function NotificationsConfgiuration.new() ---@return NotificationsConfgiuration
+function Confgiuration.new() ---@return notifications.Confgiuration
     return setmetatable({
         SHOW_BALLOONS = true,
         BALLOONS_VISIBLE_COUNT = 4,
         _idToSettingsMap = {},
-    }, NotificationsConfgiuration)
+    }, Confgiuration)
 end
 
 --- INSTANCE METHODS -----------------------------------------------------------
 
 ---@param groupId string
-function NotificationsConfgiuration:isRegistered(groupId) ---@return boolean
+function Confgiuration:isRegistered(groupId) ---@return boolean
     return require("notifications.notification_group_manager"):isGroupRegistered(groupId)
 end
 
----@param settings NotificationSettings
+---@param settings notifications.NotificationSettings
 ---@return nil
----@overload fun(self: NotificationsConfgiuration, groupId: string, displayType: NotificationDisplayType): nil
-function NotificationsConfgiuration:changeSettings(settings, displayType)
+---@overload fun(self: notifications.Confgiuration, groupId: string, displayType: notifications.NotificationDisplayType): nil
+function Confgiuration:changeSettings(settings, displayType)
     if type(settings) == "string" and type(displayType) == "string" then
         settings = NotificationSettings.new(settings, displayType)
     end
@@ -50,8 +50,8 @@ function NotificationsConfgiuration:changeSettings(settings, displayType)
     end
 end
 
----@param opts NotificationUserOpts
-function NotificationsConfgiuration:withUserConfig(opts) ---@return NotificationsConfgiuration
+---@param opts notifications.UserOpts
+function Confgiuration:withUserConfig(opts) ---@return notifications.Confgiuration
     if opts.by_group ~= nil and type(opts.by_group) == "table" then
         for groupId, groupOpts in pairs(opts.by_group or {}) do
             assert(type(groupId) == "string", "Expected groupId to be a string, got " .. type(groupId))
@@ -83,7 +83,7 @@ end
 
 ---@public
 ---@param groupId string
-function NotificationsConfgiuration:getSettings(groupId) ---@return NotificationSettings
+function Confgiuration:getSettings(groupId) ---@return notifications.NotificationSettings
     local settings = self._idToSettingsMap[groupId]
 
     return settings or self:_getDefaultSettings(groupId)
@@ -91,7 +91,7 @@ end
 
 ---@private
 ---@param groupId string
-function NotificationsConfgiuration:_getDefaultSettings(groupId) ---@return NotificationSettings
+function Confgiuration:_getDefaultSettings(groupId) ---@return notifications.NotificationSettings
     local group = require("notifications.notification_group_manager"):getNotificationGroup(groupId)
     if group ~= nil then
         return NotificationSettings.new(groupId, group:getDisplayType())
@@ -100,5 +100,5 @@ function NotificationsConfgiuration:_getDefaultSettings(groupId) ---@return Noti
     return NotificationSettings.new(groupId, NotificationDisplayType.BALLOON)
 end
 
-local config = NotificationsConfgiuration.new()
+local config = Confgiuration.new()
 return config
