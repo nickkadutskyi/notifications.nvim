@@ -5,10 +5,12 @@ local NotificationDisplayType = require("notifications.notification_display_type
 
 ---@class NotificationUserOpts
 ---@field display_balloon_notifications boolean|nil
+---@field balloon_notifications_visible_count integer|nil
 ---@field by_group table<string, {popup_type: NotificationDisplayType}>
 
 ---@class NotificationsConfgiuration
 ---@field public SHOW_BALLOONS boolean
+---@field public BALLOONS_VISIBLE_COUNT integer
 ---@field private _idToSettingsMap table<string, NotificationSettings>
 local NotificationsConfgiuration = {}
 NotificationsConfgiuration.__index = NotificationsConfgiuration
@@ -18,6 +20,7 @@ NotificationsConfgiuration.__index = NotificationsConfgiuration
 function NotificationsConfgiuration.new() ---@return NotificationsConfgiuration
     return setmetatable({
         SHOW_BALLOONS = true,
+        BALLOONS_VISIBLE_COUNT = 4,
         _idToSettingsMap = {},
     }, NotificationsConfgiuration)
 end
@@ -63,6 +66,16 @@ function NotificationsConfgiuration:withUserConfig(opts) ---@return Notification
 
     if opts.display_balloon_notifications ~= nil then
         self.SHOW_BALLOONS = opts.display_balloon_notifications ~= false
+    end
+
+    if opts.balloon_notifications_visible_count ~= nil then
+        assert(
+            type(opts.balloon_notifications_visible_count) == "number" and opts.balloon_notifications_visible_count > 0,
+            "Expected balloon_notifications_visible_count to be a number, got "
+                .. type(opts.balloon_notifications_visible_count)
+                .. " with value more than 0."
+        )
+        self.BALLOONS_VISIBLE_COUNT = opts.balloon_notifications_visible_count
     end
 
     return self

@@ -22,8 +22,7 @@ local RELAYOUT_DEBOUNCE_MS = 50
 function BalloonLayout.new()
     ---@diagnostic disable-next-line: redefined-local
     local self = setmetatable({
-        -- TODO: make it configurable
-        _visibleCount = 4,
+        _visibleCount = require("notifications.config").BALLOONS_VISIBLE_COUNT,
         _balloonWidth = 56,
         _balloons = {},
         _collapsedInfoBalloon = nil,
