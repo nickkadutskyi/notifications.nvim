@@ -1,4 +1,5 @@
 local utils = require("notifications.utils")
+local logger = require("notifications.logger")
 
 local NotificationDisplayType = require("notifications.notification_display_type")
 local NotificationBalloon = require("notifications.notification_balloon")
@@ -54,6 +55,7 @@ end
 ---@param notification notifications.Notification
 function NotificationManager:showNotification(notification)
     notification:assertHasTitleOrContent()
+    logger:debug("Incoming notification: " .. tostring(notification))
 
     local conf = require("notifications.config")
 
@@ -85,7 +87,7 @@ function NotificationManager:_doShowNotification(notification) ---@return nil vo
     local displayType = settings:getDisplayType()
 
     if displayType == NotificationDisplayType.NONE then
-        -- Do nothing TODO: maybe log if logging turned on
+        logger:debug("Skipping (display type NONE in %s): " .. tostring(notification), groupId)
     elseif displayType == NotificationDisplayType.TOOL_WINDOW_BALLOON then
         -- Do nothing because not implemented TODO: maybe log if logging turned on
     elseif displayType == NotificationDisplayType.BALLOON or displayType == NotificationDisplayType.STICKY_BALLOON then
@@ -96,6 +98,7 @@ function NotificationManager:_doShowNotification(notification) ---@return nil vo
         --       and will only expire it if it doesn't need to be in timeline
         -- if displayType == NotificationDisplayType.STICKY_BALLOON or true then
         if balloon == nil then
+            logger:debug("Not shown (no balloon):" .. tostring(notification))
             notification:expire()
         else
             balloon:addListener({

@@ -1,3 +1,5 @@
+local logger = require("notifications.logger")
+
 local NotificationGroup = require("notifications.notification_group")
 local NotificationDisplayType = require("notifications.notification_display_type")
 
@@ -77,15 +79,29 @@ end
 function NotificationGroupManager:_registerNotificationGroup(plugin, registeredGroups) ---@return nil void
     local groupId = plugin.id
 
-    if groupId == nil or registeredGroups[groupId] then
+    if groupId == nil then
+        logger:warn('Cannot create notification group for plugin "%s": id should be not null', plugin.pluginId)
         return
     end
 
     local displayType = plugin.displayType
+    if displayType == nil then
+        logger:warn('Cannot create notification group "%s": displayType should be not null', groupId)
+        return
+    end
     local title = plugin.displayName
 
     local notificationGroup = NotificationGroup.new(groupId, displayType, title, plugin.pluginId)
+    local old = registeredGroups[groupId]
     registeredGroups[groupId] = notificationGroup
+    if old ~= nil then
+        logger:warn(
+            'Notification group "%s" from plugin "%s" is overriding existing group from plugin "%s"',
+            groupId,
+            plugin.pluginId,
+            old.pluginId
+        )
+    end
 end
 
 ---@private
