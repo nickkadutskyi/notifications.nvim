@@ -6,7 +6,7 @@ local NotificationDisplayType = require("notifications.notification_display_type
 ---@class notifications.UserOpts
 ---@field display_balloon_notifications boolean|nil
 ---@field balloon_notifications_visible_count integer|nil
----@field by_group table<string, {popup_type: notifications.NotificationDisplayType}>
+---@field by_group table<string, {popup_type: notifications.NotificationDisplayType, show_in_tool_window?: boolean}>
 
 ---@class notifications.Confgiuration
 ---@field public SHOW_BALLOONS boolean
@@ -34,10 +34,10 @@ end
 
 ---@param settings notifications.NotificationSettings
 ---@return nil
----@overload fun(self: notifications.Confgiuration, groupId: string, displayType: notifications.NotificationDisplayType): nil
-function Confgiuration:changeSettings(settings, displayType)
-    if type(settings) == "string" and type(displayType) == "string" then
-        settings = NotificationSettings.new(settings, displayType)
+---@overload fun(self: notifications.Confgiuration, groupId: string, displayType: notifications.NotificationDisplayType, shouldLog: boolean): nil
+function Confgiuration:changeSettings(settings, displayType, shouldLog)
+    if type(settings) == "string" and type(displayType) == "string" and type(shouldLog) == "boolean" then
+        settings = NotificationSettings.new(settings, displayType, shouldLog)
     end
     assert(u.is_a(settings, NotificationSettings), "Expected settings to be a NotificationSettings instance")
 
@@ -60,7 +60,8 @@ function Confgiuration:withUserConfig(opts) ---@return notifications.Confgiurati
                 "Expected group options to be a table, got " .. type(groupOpts) .. " for groupId " .. groupId
             )
             local displayType = groupOpts.popup_type or NotificationDisplayType.BALLOON
-            self:changeSettings(groupId, displayType)
+            local shouldLog = groupOpts.show_in_tool_window == true
+            self:changeSettings(groupId, displayType, shouldLog)
         end
     end
 
@@ -94,10 +95,10 @@ end
 function Confgiuration:_getDefaultSettings(groupId) ---@return notifications.NotificationSettings
     local group = require("notifications.notification_group_manager"):getNotificationGroup(groupId)
     if group ~= nil then
-        return NotificationSettings.new(groupId, group:getDisplayType())
+        return NotificationSettings.new(groupId, group:getDisplayType(), group:getShouldLogByDefault())
     end
 
-    return NotificationSettings.new(groupId, NotificationDisplayType.BALLOON)
+    return NotificationSettings.new(groupId, NotificationDisplayType.BALLOON, true)
 end
 
 local config = Confgiuration.new()

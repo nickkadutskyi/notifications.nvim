@@ -132,33 +132,43 @@ function Logger:log(level, msg, ...) ---@return nil void
 end
 
 ---@param msg string
----@param ... any[]
 function Logger:trace(msg, ...) ---@return nil void
     self:log(vim.log.levels.TRACE, msg, ...)
 end
 
 ---@param msg string
----@param ... any[]
 function Logger:debug(msg, ...) ---@return nil void
     self:log(vim.log.levels.DEBUG, msg, ...)
 end
 
 ---@param msg string
----@param ... any[]
 function Logger:info(msg, ...) ---@return nil void
     self:log(vim.log.levels.INFO, msg, ...)
 end
 
 ---@param msg string
----@param ... any[]
 function Logger:warn(msg, ...) ---@return nil void
     self:log(vim.log.levels.WARN, msg, ...)
 end
 
 ---@param msg string
----@param ... any[]
 function Logger:error(msg, ...) ---@return nil void
     self:log(vim.log.levels.ERROR, msg, ...)
+    error(msg)
+end
+
+---@param value boolean
+---@param msg? string
+function Logger:assertTrue(value, msg) ---@return boolean
+    if not value then
+        local message = "Assertion failed"
+        if msg then
+            message = message .. ": " .. msg
+        end
+        self:error(message)
+    end
+
+    return value
 end
 
 local logger = Logger.new()

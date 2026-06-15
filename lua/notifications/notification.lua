@@ -1,4 +1,5 @@
 local utils = require("notifications.utils")
+local logger = require("notifications.logger")
 
 --- Increasing counter for unique notification IDs within the session.
 local next_id = 0
@@ -194,7 +195,7 @@ end
 
 ---@throws error if notification has no title and content
 function Notification:assertHasTitleOrContent()
-    assert(
+    logger:assertTrue(
         self:hasTitle() or self:hasContent(),
         "Notification must have title or/and content; groupId: " .. self._groupId
     )

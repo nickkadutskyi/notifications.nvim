@@ -68,13 +68,18 @@ function NotificationManager:showNotification(notification)
         notification:expire()
     end
 
-    if not conf.SHOW_BALLOONS or displayType == NotificationDisplayType.NONE then
+    if
+        not settings:getShouldLog()
+        and (settings:getDisplayType() == NotificationDisplayType.NONE or not conf.SHOW_BALLOONS)
+    then
         notification:expire()
     end
 
-    utils.invokeLater(function()
-        self:_doShowNotification(notification)
-    end)
+    if conf.SHOW_BALLOONS then
+        utils.invokeLater(function()
+            self:_doShowNotification(notification)
+        end)
+    end
 end
 
 ---@private
@@ -93,22 +98,20 @@ function NotificationManager:_doShowNotification(notification) ---@return nil vo
         logger:debug("Not shown (display type TOOL_WINDOW_BALLOON not implemented): " .. tostring(notification))
     elseif displayType == NotificationDisplayType.BALLOON or displayType == NotificationDisplayType.STICKY_BALLOON then
         local balloon = self:_notifyByBalloon(notification, displayType)
-        -- NOTE: Currently we alway expire notification when balloon closes
-        --       but when we'll add tool bar with timeline (history) we will
-        --       check whether the notification is logged into the timeline
-        --       and will only expire it if it doesn't need to be in timeline
-        -- if displayType == NotificationDisplayType.STICKY_BALLOON or true then
         if balloon == nil then
             logger:debug("Not shown (no balloon):" .. tostring(notification))
-            notification:expire()
-        else
-            balloon:addListener({
-                onClosed = function()
-                    notification:expire()
-                end,
-            })
         end
-        -- end
+        if not settings:getShouldLog() or displayType == NotificationDisplayType.STICKY_BALLOON then
+            if balloon == nil then
+                notification:expire()
+            else
+                balloon:addListener({
+                    onClosed = function()
+                        notification:expire()
+                    end,
+                })
+            end
+        end
     end
 end
 

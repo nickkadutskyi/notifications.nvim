@@ -21,6 +21,7 @@ n/a
 n/a
 
 ## TODO
+- [ ] When focusing on balloon stop its timer and when unfocusing continue the timer
 - [ ] Add screencast to README to show how it works and looks like
 - [ ] Link highlight groups so ti works well with popular colorscheme
 - [ ] Configuration

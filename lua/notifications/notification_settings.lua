@@ -1,32 +1,38 @@
 ---@class notifications.NotificationSettings
 ---@field groupId string
 ---@field displayType notifications.NotificationDisplayType
+---@field isShouldLog boolean|nil
 local NotificationSettings = {}
 NotificationSettings.__index = NotificationSettings
 
 ---@param groupId string
 ---@param displayType notifications.NotificationDisplayType
----@return notifications.NotificationSettings
-function NotificationSettings.new(groupId, displayType)
+---@param isShouldLog boolean|nil
+function NotificationSettings.new(groupId, displayType, isShouldLog) ---@return notifications.NotificationSettings
     ---@diagnostic disable-next-line: redefined-local
     local self = setmetatable({
         groupId = groupId,
         displayType = displayType,
+        isShouldLog = isShouldLog,
     }, NotificationSettings)
 
     return self
 end
 
 ---@param displayType notifications.NotificationDisplayType
----@return notifications.NotificationSettings
-function NotificationSettings:withDisplayType(displayType)
+function NotificationSettings:withDisplayType(displayType) ---@return notifications.NotificationSettings
     self.displayType = displayType
     return self
 end
 
+---@param isShouldLog boolean
+function NotificationSettings:withShouldLog(isShouldLog) ---@return notifications.NotificationSettings
+    self.isShouldLog = isShouldLog
+    return self
+end
+
 ---@param other notifications.NotificationSettings
----@return boolean
-function NotificationSettings:__eq(other)
+function NotificationSettings:__eq(other) ---@return boolean
     if type(other) ~= "table" or getmetatable(other) ~= NotificationSettings then
         return false
     end
@@ -34,14 +40,16 @@ function NotificationSettings:__eq(other)
     return self.groupId == other:getGroupId() and self.displayType == other:getDisplayType()
 end
 
----@return string
-function NotificationSettings:getGroupId()
+function NotificationSettings:getGroupId() ---@return string
     return self.groupId
 end
 
----@return notifications.NotificationDisplayType
-function NotificationSettings:getDisplayType()
+function NotificationSettings:getDisplayType() ---@return notifications.NotificationDisplayType
     return self.displayType
+end
+
+function NotificationSettings:getShouldLog() ---@return boolean|nil
+    return self.isShouldLog
 end
 
 return NotificationSettings

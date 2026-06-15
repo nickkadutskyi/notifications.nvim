@@ -8,6 +8,7 @@ local NotificationDisplayType = require("notifications.notification_display_type
 ---@field displayType notifications.NotificationDisplayType
 ---@field displayName string|nil
 ---@field pluginId string|nil
+---@field isLogByDefault boolean|nil
 
 ---@class NotificationGroupManager
 ---@field private _registeredGroups table<string, notifications.NotificationGroup>
@@ -30,6 +31,7 @@ function NotificationGroupManager.new() ---@return NotificationGroupManager
             displayType = NotificationDisplayType.BALLOON,
             displayName = "Default",
             pluginId = "notifications.nvim",
+            isLogByDefault = true,
         },
         ---@diagnostic disable-next-line: invisible
         self._registeredGroups
@@ -41,6 +43,7 @@ function NotificationGroupManager.new() ---@return NotificationGroupManager
             displayType = NotificationDisplayType.STICKY_BALLOON,
             displayName = "Default Sticky",
             pluginId = "notifications.nvim",
+            isLogByDefault = true,
         },
         ---@diagnostic disable-next-line: invisible
         self._registeredGroups
@@ -91,12 +94,12 @@ function NotificationGroupManager:_registerNotificationGroup(plugin, registeredG
     end
     local title = plugin.displayName
 
-    local notificationGroup = NotificationGroup.new(groupId, displayType, title, plugin.pluginId)
+    local notificationGroup = NotificationGroup.new(groupId, displayType, title, plugin.pluginId, plugin.isLogByDefault)
     local old = registeredGroups[groupId]
     registeredGroups[groupId] = notificationGroup
     if old ~= nil then
         logger:warn(
-            'Notification group "%s" from plugin "%s" is overriding existing group from plugin "%s"',
+            'Notification group "%s" from "%s" is overriding existing one from "%s"',
             groupId,
             plugin.pluginId,
             old.pluginId
@@ -189,6 +192,7 @@ function NotificationGroupManager:_processPluginPaths(paths, callback) ---@retur
                     displayType = NotificationDisplayType.BALLOON,
                     displayName = pluginId,
                     pluginId = pluginId,
+                    isLogByDefault = true,
                 }
 
                 callback(pluginConfig)
