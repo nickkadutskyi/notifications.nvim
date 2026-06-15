@@ -131,24 +131,34 @@ function Logger:log(level, msg, ...) ---@return nil void
     end
 end
 
-function Logger:trace(...) ---@return nil void
-    self:log(vim.log.levels.TRACE, ...)
+---@param msg string
+---@param ... any[]
+function Logger:trace(msg, ...) ---@return nil void
+    self:log(vim.log.levels.TRACE, msg, ...)
 end
 
-function Logger:debug(...) ---@return nil void
-    self:log(vim.log.levels.DEBUG, ...)
+---@param msg string
+---@param ... any[]
+function Logger:debug(msg, ...) ---@return nil void
+    self:log(vim.log.levels.DEBUG, msg, ...)
 end
 
-function Logger:info(...) ---@return nil void
-    self:log(vim.log.levels.INFO, ...)
+---@param msg string
+---@param ... any[]
+function Logger:info(msg, ...) ---@return nil void
+    self:log(vim.log.levels.INFO, msg, ...)
 end
 
-function Logger:warn(...) ---@return nil void
-    self:log(vim.log.levels.WARN, ...)
+---@param msg string
+---@param ... any[]
+function Logger:warn(msg, ...) ---@return nil void
+    self:log(vim.log.levels.WARN, msg, ...)
 end
 
-function Logger:error(...) ---@return nil void
-    self:log(vim.log.levels.ERROR, ...)
+---@param msg string
+---@param ... any[]
+function Logger:error(msg, ...) ---@return nil void
+    self:log(vim.log.levels.ERROR, msg, ...)
 end
 
 local logger = Logger.new()
