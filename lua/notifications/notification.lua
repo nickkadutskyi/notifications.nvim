@@ -1,4 +1,4 @@
-local utils = require("notifications.utils")
+local u = require("notifications.utils")
 local logger = require("notifications.logger")
 
 --- Increasing counter for unique notification IDs within the session.
@@ -46,7 +46,7 @@ function Notification.new(groupId, title, content, level)
     return setmetatable({
         id = id,
         _timestamp = timestamp,
-        _groupId = utils.isEmptyStr(groupId) and "default" or groupId,
+        _groupId = u.isEmptyStr(groupId) and "default" or groupId,
         _title = title or "",
         _subtitle = nil,
         _content = content or "",
@@ -61,6 +61,10 @@ end
 --- INSTANCE METHODS -----------------------------------------------------------
 
 function Notification:notify()
+    -- Feed the notifications model (history / "tool window" log) at publish time.
+    -- By calling the model first here we make the log update happen at the moment the
+    -- notification is emitted, before any balloon display or early suppression logic runs.
+    require("notifications.notifications_model"):addNotification(self)
     require("notifications.notifications_manager"):showNotification(self)
 end
 
@@ -166,7 +170,7 @@ end
 ---@param balloon notifications.NotificationBalloon|nil
 function Notification:doHideBalloon(balloon)
     if balloon ~= nil then
-        utils.invokeLater(function()
+        u.invokeLater(function()
             balloon:hideNowOrWhenCollapsed()
         end)
     end
@@ -178,19 +182,23 @@ function Notification:expire()
     end
 
     self._expired = true
-    self:hideBalloon()
+
+    u.invokeLater(function()
+        self:hideBalloon()
+    end)
+    require("notifications.notifications_manager"):expire(self)
 end
 
 --- PREDICATES -----------------------------------------------------------------
 
 ---@return boolean
 function Notification:hasTitle()
-    return not utils.isEmptyStr(self._title) or not utils.isEmptyStr(self._subtitle)
+    return not u.isEmptyStr(self._title) or not u.isEmptyStr(self._subtitle)
 end
 
 ---@return boolean
 function Notification:hasContent()
-    return not utils.isEmptyStr(self._content)
+    return not u.isEmptyStr(self._content)
 end
 
 ---@throws error if notification has no title and content

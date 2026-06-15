@@ -301,4 +301,19 @@ end
 
 M.is_a = M.instanceof
 
+---@param list table
+---@param item any
+---@return boolean removed true if item was found and removed, false otherwise
+---@return integer count of removed items
+function M.removeFromList(list, item)
+    local count = 0
+    for i = #list, 1, -1 do
+        if list[i] == item then
+            table.remove(list, i)
+            count = count + 1
+        end
+    end
+    return count > 0, count
+end
+
 return M

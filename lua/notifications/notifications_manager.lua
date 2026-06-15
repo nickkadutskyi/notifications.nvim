@@ -1,4 +1,4 @@
-local utils = require("notifications.utils")
+local u = require("notifications.utils")
 local logger = require("notifications.logger")
 
 local NotificationDisplayType = require("notifications.notification_display_type")
@@ -76,7 +76,7 @@ function NotificationManager:showNotification(notification)
     end
 
     if conf.SHOW_BALLOONS then
-        utils.invokeLater(function()
+        u.invokeLater(function()
             self:_doShowNotification(notification)
         end)
     end
@@ -184,6 +184,13 @@ function NotificationManager:frameActivateBalloonListener(balloon, callback) ---
             end,
         })
     end
+end
+
+---@param notification notifications.Notification
+function NotificationManager:expire(notification) ---@return nil void
+    u.invokeLater(function()
+        require("notifications.notifications_model"):remove(notification)
+    end)
 end
 
 local manager = NotificationManager.new()

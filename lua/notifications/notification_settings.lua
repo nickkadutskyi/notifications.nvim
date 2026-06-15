@@ -37,7 +37,9 @@ function NotificationSettings:__eq(other) ---@return boolean
         return false
     end
 
-    return self.groupId == other:getGroupId() and self.displayType == other:getDisplayType()
+    return self.groupId == other:getGroupId()
+        and self.displayType == other:getDisplayType()
+        and self.isShouldLog == other:getShouldLog()
 end
 
 function NotificationSettings:getGroupId() ---@return string

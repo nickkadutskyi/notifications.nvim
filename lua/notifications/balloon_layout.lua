@@ -212,12 +212,7 @@ function BalloonLayout:_remove(balloonOrNotification, hide)
     end
     if u.is_a(balloonOrNotification, NotificationBalloon) then
         balloon = balloonOrNotification --[[@as notifications.NotificationBalloon]]
-        for i, b in ipairs(self._balloons) do
-            if b == balloon then
-                table.remove(self._balloons, i)
-                break
-            end
-        end
+        u.removeFromList(self._balloons, balloon)
         if hide == true then
             balloon:hideNowOrWhenCollapsed()
         end
