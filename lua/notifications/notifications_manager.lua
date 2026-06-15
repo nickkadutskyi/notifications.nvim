@@ -89,7 +89,8 @@ function NotificationManager:_doShowNotification(notification) ---@return nil vo
     if displayType == NotificationDisplayType.NONE then
         logger:debug("Skipping (display type NONE in %s): " .. tostring(notification), groupId)
     elseif displayType == NotificationDisplayType.TOOL_WINDOW_BALLOON then
-        -- Do nothing because not implemented TODO: maybe log if logging turned on
+        -- TODO: implement tool window ballooon
+        logger:debug("Not shown (display type TOOL_WINDOW_BALLOON not implemented): " .. tostring(notification))
     elseif displayType == NotificationDisplayType.BALLOON or displayType == NotificationDisplayType.STICKY_BALLOON then
         local balloon = self:_notifyByBalloon(notification, displayType)
         -- NOTE: Currently we alway expire notification when balloon closes
