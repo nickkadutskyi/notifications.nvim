@@ -2,8 +2,14 @@
 require("notifications.tab_manager")
 -- Inits notification manager
 require("notifications.notifications_manager")
+-- Inits the Notifications tool window (singleton)
+require("notifications.tool_window")
 
 local notifications = require("notifications")
+
+vim.api.nvim_create_user_command("Notifications", function()
+    require("notifications.tool_window"):show()
+end, {})
 
 vim.api.nvim_create_user_command("NotificationsTestInt", function()
     notifications.notify(

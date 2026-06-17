@@ -5,7 +5,7 @@ local namespace = vim.api.nvim_create_namespace("notifications.balloon")
 ---@field onContentUpdated? fun(balloon: notifications.Balloon)
 ---@field onWinLeave? fun(balloon: notifications.Balloon)
 
----@class notifications.BalloonBounds
+---@class notifications.Bounds
 ---@field row integer
 ---@field col integer
 ---@field width integer
@@ -22,7 +22,7 @@ local namespace = vim.api.nvim_create_namespace("notifications.balloon")
 ---@class notifications.Balloon
 ---@field protected _buffer? integer
 ---@field protected _window? integer
----@field protected _bounds? notifications.BalloonBounds
+---@field protected _bounds? notifications.Bounds
 ---@field protected _position? notifications.BalloonPosition
 ---@field protected _height? integer
 ---@field protected _maxContentWidth integer
@@ -140,7 +140,7 @@ function Balloon:getWidth() ---@return integer
         + 2
 end
 
----@param bounds notifications.BalloonBounds
+---@param bounds notifications.Bounds
 function Balloon:setBounds(bounds) ---@return notifications.Balloon balloon
     self._bounds = bounds
     self:setWidth(bounds.width)
@@ -150,7 +150,7 @@ function Balloon:setBounds(bounds) ---@return notifications.Balloon balloon
 end
 
 ---@private
----@param bounds notifications.BalloonBounds
+---@param bounds notifications.Bounds
 function Balloon:_updatePosition(bounds) ---@return nil void
     self._position = {
         row = bounds.row,
@@ -244,7 +244,7 @@ function Balloon:addListener(listener) ---@return nil void
     table.insert(self._listeners, listener)
 end
 
----@param bounds? notifications.BalloonBounds|nil
+---@param bounds? notifications.Bounds|nil
 function Balloon:show(bounds)
     assert(self._isDisposed == false, "Balloon is already disposed")
 

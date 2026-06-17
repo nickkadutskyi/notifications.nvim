@@ -138,7 +138,7 @@ function BalloonLayout:_setBounds(balloons, startCol, bottomRow)
         else
             height = (math.min(extra_space + balloon:getMaxHeight(), balloon:getHeight()) or 1)
         end
-        ---@type notifications.BalloonBounds
+        ---@type notifications.Bounds
         local bounds = {
             width = balloon:getWidth(),
             height = height,
